@@ -31,6 +31,15 @@ npm install
 npm run dev          # http://localhost:5173
 ```
 
+## 배포 (GitHub Pages)
+
+`main` 에 푸시하면 `.github/workflows/deploy.yml` 이 빌드해서 Pages 에 올린다.
+저장소 **Settings → Pages → Source** 를 `GitHub Actions` 로 한 번만 바꿔주면
+이후로는 자동이고, 링크를 열면 바로 지도가 뜬다.
+
+`vite.config.js` 의 `base` 가 `'./'` 라서 `/DSHS-3D-Map/` 같은 하위 경로에서도
+자산 경로가 깨지지 않는다.
+
 > `index.html` 을 더블클릭하면 안 된다. `file://` 에서는 `import ... from "three"` 가
 > 해석되지 않아 3D가 전혀 실행되지 않는다. 서버 없이 열고 싶다면
 > `npm run build` 후 `dist/index.html` 을 열면 된다 (번들이라 정상 동작).
