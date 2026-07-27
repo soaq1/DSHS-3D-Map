@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>서부고 배치도 3D</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%23050b14'/><rect x='2.5' y='2.5' width='11' height='11' fill='none' stroke='%2322d3ee'/></svg>"
+    />
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <canvas id="scene"></canvas>
+
+    <div id="hud">
+      <div id="hud-title">서부고 배치도</div>
+      <div id="hud-hint">
+        드래그 회전 · 휠 줌 · 우클릭 팬<br />교실을 클릭하면 이름이 표시됩니다
+      </div>
+    </div>
+
+    <!-- 검색 + 필터. 칩은 rooms.json 의 meta 를 보고 JS 가 만든다. -->
+    <div id="controls">
+      <div id="search-wrap">
+        <input
+          id="search"
+          type="text"
+          placeholder="방 이름 검색 (예: 보건실, 2-1)"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button id="search-clear" type="button" aria-label="지우기" hidden>
+          &times;
+        </button>
+        <div id="search-results" hidden></div>
+      </div>
+      <div id="legend"></div>
+      <div id="types"></div>
+    </div>
+
+    <!-- 층 선택. 층이 1개뿐이면 JS 가 통째로 숨긴다. -->
+    <div id="floors" hidden></div>
+
+    <div id="panel" hidden>
+      <button id="panel-close" type="button" aria-label="닫기">&times;</button>
+      <div id="panel-meta">
+        <span id="panel-building"></span>
+        <span id="panel-type"></span>
+      </div>
+      <div id="panel-name"></div>
+    </div>
+
+    <div id="fallback" hidden>
+      <strong id="fallback-title"></strong>
+      <p id="fallback-msg"></p>
+      <code id="fallback-detail"></code>
+    </div>
+
+    <!-- 검은 화면으로 조용히 죽지 않게 하는 가드. 모듈 스크립트보다 먼저 돈다. -->
+    <script>
+      window.showFallback = function (title, msg, detail) {
+        var el = document.getElementById("fallback");
+        if (!el || !el.hidden) return; // 첫 번째 원인만 표시
+        document.getElementById("fallback-title").textContent = title;
+        document.getElementById("fallback-msg").innerHTML = msg;
+        document.getElementById("fallback-detail").textContent = detail || "";
+        el.hidden = false;
+      };
+
+      // main.js 가 시작되면 __appBooted 를 세운다. 일정 시간 안에 안 세워지면
+      // 모듈이 아예 실행되지 못한 것이므로 이유를 화면에 띄운다.
+      // (빌드본 dist/index.html 은 번들이라 file:// 에서도 정상 동작하므로,
+      //  프로토콜만 보고 미리 경고하면 멀쩡한 페이지를 가려버린다.)
+      function notBooted(detail) {
+        if (window.__appBooted) return;
+        if (location.protocol === "file:") {
+          window.showFallback(
+            "개발 서버를 통해 열어야 합니다.",
+            "파일을 더블클릭해서 연 상태입니다(<code>file://</code>). 개발용 " +
+              "<code>index.html</code> 은 <code>import ... from &quot;three&quot;</code> 를 " +
+              "브라우저가 해석하지 못해 3D가 전혀 실행되지 않습니다." +
+              "<br /><br />터미널에서 <code>npm run dev</code> 를 실행한 뒤 " +
+              "<b>http://localhost:5173/</b> 로 여세요." +
+              "<br />더블클릭으로 열고 싶다면 <code>npm run build</code> 후 " +
+              "<b>dist/index.html</b> 을 여시면 됩니다.",
+            detail || location.href
+          );
+        } else {
+          window.showFallback(
+            "3D 스크립트가 실행되지 않았습니다.",
+            "아래 메시지를 그대로 알려주시면 원인을 찾을 수 있습니다.",
+            detail || "main.js 가 로드되지 않았습니다."
+          );
+        }
+      }
+
+      window.addEventListener("error", function (e) {
+        notBooted(e.message || String(e.error || e));
+      });
+      setTimeout(notBooted, 2000);
+    </script>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+node_modules/
+dist/
+
+# 파서가 만들어내는 검증용 이미지 (매번 재생성됨)
+tools/check.png
+
+# 편집기 / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+
+# Sweet Home 3D 가 남기는 임시/백업 파일
+*.sh3d.bak
+*.sh3d~

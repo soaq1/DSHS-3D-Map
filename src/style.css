@@ -1,0 +1,407 @@
+:root {
+  --bg: #050b14;
+  --cyan: #22d3ee;
+  --ink: #dbeafe;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Malgun Gothic", "맑은 고딕", system-ui, sans-serif;
+}
+
+#scene {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* 좌측 상단 안내 */
+#hud {
+  position: fixed;
+  top: 26px;
+  left: 28px;
+  pointer-events: none;
+  user-select: none;
+}
+
+#hud-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: var(--cyan);
+  text-shadow: 0 0 16px rgba(34, 211, 238, 0.55);
+}
+
+#hud-title::after {
+  content: "";
+  display: block;
+  width: 34px;
+  height: 1px;
+  margin-top: 10px;
+  background: linear-gradient(90deg, var(--cyan), transparent);
+}
+
+#hud-hint {
+  margin-top: 10px;
+  font-size: 11px;
+  line-height: 1.9;
+  letter-spacing: 0.02em;
+  color: rgba(219, 234, 254, 0.4);
+}
+
+/* 좌측 검색 + 필터 */
+#controls {
+  position: fixed;
+  top: 108px;
+  left: 28px;
+  width: 232px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#search-wrap {
+  position: relative;
+}
+
+#search {
+  width: 100%;
+  padding: 9px 28px 9px 12px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--ink);
+  background: rgba(6, 14, 26, 0.72);
+  border: 1px solid rgba(219, 234, 254, 0.14);
+  border-radius: 5px;
+  outline: none;
+  backdrop-filter: blur(8px);
+  transition: border-color 0.15s;
+}
+
+#search::placeholder {
+  color: rgba(219, 234, 254, 0.3);
+}
+
+#search:focus {
+  border-color: rgba(34, 211, 238, 0.6);
+}
+
+#search-clear {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  font-size: 15px;
+  line-height: 1;
+  color: rgba(219, 234, 254, 0.45);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+#search-clear[hidden] {
+  display: none;
+}
+
+#search-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 244px;
+  overflow-y: auto;
+  background: rgba(6, 14, 26, 0.94);
+  border: 1px solid rgba(34, 211, 238, 0.28);
+  border-radius: 5px;
+  backdrop-filter: blur(10px);
+  z-index: 5;
+}
+
+#search-results[hidden] {
+  display: none;
+}
+
+#search-results button {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  width: 100%;
+  padding: 7px 11px;
+  font-family: inherit;
+  font-size: 12px;
+  text-align: left;
+  color: var(--ink);
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(219, 234, 254, 0.06);
+  cursor: pointer;
+}
+
+#search-results button:last-child {
+  border-bottom: none;
+}
+
+#search-results button:hover,
+#search-results button.active {
+  background: rgba(34, 211, 238, 0.14);
+}
+
+#search-results .where {
+  margin-left: auto;
+  font-size: 10px;
+  color: rgba(219, 234, 254, 0.4);
+}
+
+#search-results .none {
+  padding: 9px 11px;
+  font-size: 11px;
+  color: rgba(219, 234, 254, 0.4);
+}
+
+/* 범례 겸 필터 칩 */
+#legend,
+#types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+#legend button,
+#types button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  color: rgba(219, 234, 254, 0.55);
+  background: rgba(6, 14, 26, 0.6);
+  border: 1px solid rgba(219, 234, 254, 0.12);
+  border-radius: 20px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: color 0.15s, border-color 0.15s, opacity 0.15s;
+}
+
+#legend button[aria-pressed="false"],
+#types button[aria-pressed="false"] {
+  opacity: 0.38;
+}
+
+#legend button[aria-pressed="true"] {
+  color: #ffffff;
+  border-color: color-mix(in srgb, var(--swatch) 55%, transparent);
+}
+
+#types button[aria-pressed="true"] {
+  color: #ffffff;
+  border-color: rgba(219, 234, 254, 0.35);
+}
+
+#legend .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--swatch);
+  box-shadow: 0 0 8px var(--swatch);
+}
+
+#legend .n,
+#types .n {
+  color: rgba(219, 234, 254, 0.4);
+}
+
+/* 우측 층 선택 (엘리베이터 버튼처럼). 층이 1개면 숨는다 */
+#floors {
+  position: fixed;
+  right: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#floors[hidden] {
+  display: none;
+}
+
+#floors button {
+  width: 44px;
+  height: 36px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(219, 234, 254, 0.5);
+  background: rgba(6, 14, 26, 0.6);
+  border: 1px solid rgba(219, 234, 254, 0.12);
+  border-radius: 5px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+#floors button:hover {
+  color: var(--cyan);
+  border-color: rgba(34, 211, 238, 0.4);
+}
+
+#floors button[aria-pressed="true"] {
+  color: #ffffff;
+  background: rgba(34, 211, 238, 0.16);
+  border-color: rgba(34, 211, 238, 0.7);
+  box-shadow: 0 0 16px rgba(34, 211, 238, 0.25);
+}
+
+/* 우측 하단 고정 패널. --accent 는 선택된 방의 동 색으로 JS 가 채운다 */
+#panel {
+  --accent: var(--cyan);
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  min-width: 232px;
+  padding: 16px 48px 18px 22px;
+  background: rgba(6, 14, 26, 0.72);
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, transparent);
+  border-radius: 6px;
+  box-shadow:
+    0 0 32px color-mix(in srgb, var(--accent) 16%, transparent),
+    0 12px 40px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+  animation: panel-in 0.22s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+/* 좌측 액센트 바 */
+#panel::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--accent);
+  box-shadow: 0 0 14px var(--accent);
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+#panel[hidden] {
+  display: none;
+}
+
+#panel-meta {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+#panel-meta span {
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+}
+
+#panel-meta #panel-type {
+  color: rgba(219, 234, 254, 0.55);
+  background: rgba(219, 234, 254, 0.06);
+  border-color: rgba(219, 234, 254, 0.12);
+}
+
+#panel-name {
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+  text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+#panel-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 18px;
+  line-height: 1;
+  color: rgba(219, 234, 254, 0.4);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+#panel-close:hover {
+  color: var(--accent);
+}
+
+/* WebGL 실패 시 검은 화면 대신 이유를 보여준다 */
+#fallback {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px;
+  text-align: center;
+  background: var(--bg);
+}
+
+#fallback[hidden] {
+  display: none;
+}
+
+#fallback strong {
+  font-size: 18px;
+  color: #f87171;
+}
+
+#fallback p {
+  margin: 0;
+  max-width: 520px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: rgba(219, 234, 254, 0.75);
+}
+
+#fallback p code,
+#fallback p b {
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(34, 211, 238, 0.12);
+  color: var(--cyan);
+  font-family: Consolas, monospace;
+}
+
+#fallback > code {
+  max-width: 620px;
+  font-size: 11px;
+  word-break: break-all;
+  color: rgba(219, 234, 254, 0.3);
+}
