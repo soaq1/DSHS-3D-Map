@@ -32,13 +32,13 @@ export const TYPE_STYLE = {
   normal: { opacity: 0.1, lineOpacity: 0.62, lineWidth: 1.7, lighten: 0 },
   // lighten 을 0.12 만 줘도 블룸이 겹치면 화장실이 흰 상자로 튀어 시선을 뺏는다.
   service: { opacity: 0.11, lineOpacity: 0.66, lineWidth: 1.7, lighten: 0.07 },
-  // 복도·계단은 매스를 거의 지우되 선은 남긴다. 선까지 죽이면 세 동을 잇는
-  // ㅍ자 구조가 안 읽혀서 건물이 세 덩어리로 끊어져 보인다.
+  // 복도·계단은 매스를 거의 지우되 선은 남긴다. 선까지 죽이면 동을 잇는
+  // ㅍ자 구조가 안 읽혀서 건물이 여러 덩어리로 끊어져 보인다.
   circulation: { opacity: 0.035, lineOpacity: 0.42, lineWidth: 1.2, lighten: -0.16 },
-  // 홀은 층에서 가장 큰 매스다(3층 홀 654㎡). normal 과 같은 농도로 두면
-  // 무채색 덩어리가 층 한가운데를 덮어 뒤쪽 교실이 안 읽힌다. 복도보다는 진하게,
-  // 교실보다는 옅게 둬서 '지나가는 곳'으로 읽히게 한다.
-  hall: { opacity: 0.06, lineOpacity: 0.5, lineWidth: 1.4, lighten: 0 },
+  // 홀은 층에서 가장 넓다(2층 홀 767㎡). 교실처럼 세워두면 뒤를 가려서 예전에는
+  // 농도를 0.06까지 낮춰 억지로 비치게 했다. 지금은 30cm 로 눕혀(typeHeights)
+  // 가릴 일이 없으므로 오히려 진하게 깔아 '바닥판' 으로 또렷하게 읽히게 한다.
+  hall: { opacity: 0.2, lineOpacity: 0.55, lineWidth: 1.4, lighten: 0 },
 };
 
 export function roomColor(room, palette, typeColors = {}) {

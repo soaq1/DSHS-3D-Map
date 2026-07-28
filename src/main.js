@@ -28,6 +28,8 @@ const BASE_FLOOR = Math.min(...FLOORS);
 const PALETTE = buildPalette(roomsData.meta);
 // 홀처럼 동 색을 덮어쓰는 종류. 없으면 빈 객체라 동 색이 그대로 쓰인다.
 const TYPE_COLORS = buildTypeColors(roomsData.meta);
+// 종류별 압출 높이(cm). 홀은 30cm 로 눕힌다. 없는 종류는 벽 높이를 쓴다.
+const TYPE_HEIGHTS = roomsData.meta.typeHeights ?? {};
 
 /** 층 번호 -> 그 층을 놓을 높이 */
 const floorY = (floor) => (floor - BASE_FLOOR) * FLOOR_HEIGHT;
@@ -184,17 +186,20 @@ for (const room of roomsData.rooms) {
   const column = shaftColumns.get(room.id);
   const joinUp = !!column && column.floors.has(room.floor + 1);
   const joinDown = !!column && column.floors.has(room.floor - 1);
+  // 홀처럼 눕혀 깔 종류는 높이를 설정에서 받는다 (cm, 없으면 undefined).
+  const flat = TYPE_HEIGHTS[room.type];
   // 위층 칸이 있을 때만 층고까지 늘린다. 맨 위 칸을 늘리면 기둥이 다른 방보다
   // 툭 튀어나오고, 중간이 비어 있으면 허공에 뚜껑 없는 상자가 남는다.
-  const geometry = buildGeometry(
-    room.polygon,
-    joinUp ? FLOOR_HEIGHT_CM : WALL_HEIGHT
-  );
+  // 기둥과 납작한 방은 겹치지 않는다 — 계단실은 circulation, 홀은 hall 이다.
+  const height = joinUp ? FLOOR_HEIGHT_CM : flat ?? WALL_HEIGHT;
+  const geometry = buildGeometry(room.polygon, height);
 
   const material = createRoomMaterial(color, style.opacity);
+  // 그라데이션 기준 높이. 자기 높이를 줘야 한다 — 30cm 슬래브에 250cm 기준을
+  // 쓰면 밝기가 아래쪽 구간에만 걸려 시커멓게 깔린다.
   material.uniforms.uHeight.value = column
     ? (column.top - column.bottom) * FLOOR_HEIGHT + TOP_Y
-    : TOP_Y;
+    : height * SCALE;
   material.uniforms.uHOffset.value = column
     ? (room.floor - column.bottom) * FLOOR_HEIGHT
     : 0;
@@ -202,6 +207,9 @@ for (const room of roomsData.rooms) {
   const mesh = new THREE.Mesh(geometry, material);
 
   const edges = createEdges(geometry, color, style, {
+    // 납작한 방(홀)의 아랫 테두리는 남긴다. 30cm 간격이라 선이 겹쳐 보일까 봐
+    // 지워봤더니, 바닥에 닿는 선이 없어져 판이 어디서 끝나는지 안 읽혔다.
+    // 위아래 두 선이 다 있어야 두께가 있는 판으로 보인다.
     dropBottom: joinDown,
     dropTop: joinUp,
   });

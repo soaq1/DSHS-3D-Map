@@ -413,6 +413,8 @@ def main():
             "buildings": buildings_meta,
             # 종류별 색 덮어쓰기. 뷰어가 동 색보다 우선해서 읽는다.
             "typeColors": cfg.get("typeColors") or {},
+            # 종류별 압출 높이(cm). 없으면 뷰어가 wallHeight 를 쓴다.
+            "typeHeights": cfg.get("typeHeights") or {},
             "center": [round(cx0, 2), round(cy0, 2)],
             "bounds": {
                 "x": [round(min(bxs), 2), round(max(bxs), 2)],
