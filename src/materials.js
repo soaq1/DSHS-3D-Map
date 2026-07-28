@@ -16,6 +16,16 @@ export function buildPalette(meta) {
   return palette;
 }
 
+/** 종류별 색 덮어쓰기 (meta.typeColors). 홀처럼 여러 동에 걸친 공용 공간은
+ *  동 색을 따르면 같은 성격의 공간이 세 색으로 흩어져 안 묶인다. */
+export function buildTypeColors(meta) {
+  const colors = {};
+  for (const [type, hex] of Object.entries(meta.typeColors ?? {})) {
+    colors[type] = new THREE.Color(hex);
+  }
+  return colors;
+}
+
 // 층이 4개 쌓이면 한 시선에 방이 10겹 넘게 겹친다. 한 겹이 진하면 겹친 곳이
 // 타버리므로 매스는 옅게 두고 형태는 선으로 읽히게 한다.
 export const TYPE_STYLE = {
@@ -25,16 +35,25 @@ export const TYPE_STYLE = {
   // 복도·계단은 매스를 거의 지우되 선은 남긴다. 선까지 죽이면 세 동을 잇는
   // ㅍ자 구조가 안 읽혀서 건물이 세 덩어리로 끊어져 보인다.
   circulation: { opacity: 0.035, lineOpacity: 0.42, lineWidth: 1.2, lighten: -0.16 },
+  // 홀은 층에서 가장 큰 매스다(3층 홀 654㎡). normal 과 같은 농도로 두면
+  // 무채색 덩어리가 층 한가운데를 덮어 뒤쪽 교실이 안 읽힌다. 복도보다는 진하게,
+  // 교실보다는 옅게 둬서 '지나가는 곳'으로 읽히게 한다.
+  hall: { opacity: 0.06, lineOpacity: 0.5, lineWidth: 1.4, lighten: 0 },
 };
 
-export function roomColor(room, palette) {
+export function roomColor(room, palette, typeColors = {}) {
   const style = TYPE_STYLE[room.type] ?? TYPE_STYLE.normal;
-  const c = (palette[room.building] ?? new THREE.Color(FALLBACK[0])).clone();
+  // 종류 색이 있으면 동 색을 덮어쓴다 (홀은 동과 무관하게 한 색).
+  const base =
+    typeColors[room.type] ?? palette[room.building] ?? new THREE.Color(FALLBACK[0]);
+  const c = base.clone();
   if (style.lighten) c.offsetHSL(0, 0, style.lighten);
   return c;
 }
 
 const VERT = /* glsl */ `
+  uniform float uHOffset;
+
   varying float vH;
   varying vec3 vNormalW;
   varying vec3 vViewDir;
@@ -46,7 +65,9 @@ const VERT = /* glsl */ `
     vec4 wp = modelMatrix * vec4(position, 1.0);
     // ★ 월드 y 가 아니라 지오메트리 로컬 y 를 쓴다. 층을 쌓으면 월드 y 에
     //   층 높이가 더해져 h 가 1 을 넘고, 위층이 전부 평평하게 밝아진다.
-    vH = position.y;
+    // uHOffset 은 계단실 기둥용이다. 층마다 그라데이션이 0 에서 다시 시작하면
+    // 붙여놓은 기둥에 층수만큼 밝기 띠가 생겨 한 덩어리로 안 읽힌다.
+    vH = position.y + uHOffset;
     vNormalW = normalize(mat3(modelMatrix) * normal);
     vViewDir = normalize(cameraPosition - wp.xyz);
 
@@ -121,6 +142,7 @@ export function createRoomMaterial(color, opacity) {
         uColor: { value: new THREE.Color(color) },
         uOpacity: { value: opacity },
         uHeight: { value: 1 },
+        uHOffset: { value: 0 },
         uFresnelPower: { value: 2.2 },
         uHover: { value: 0 },
         uSelected: { value: 0 },
@@ -142,12 +164,47 @@ export function createRoomMaterial(color, opacity) {
   });
 }
 
+/** 압출 매스의 아래/위 테두리 선만 골라 뺀다.
+ *  계단실 기둥은 층마다 따로 만든 상자를 위아래로 붙여 쌓는다. 이음매의 가로
+ *  테두리를 그대로 두면 층마다 선이 그어져 "붙여놓은 상자 더미" 로 보인다.
+ *  세로 모서리만 남기면 맨 아래 테두리 + 세로선 + 맨 위 테두리가 되어
+ *  선이 육면체 하나의 윤곽으로 이어진다. */
+function stripRings(edgesGeometry, { dropBottom, dropTop }) {
+  const src = edgesGeometry.getAttribute("position");
+  edgesGeometry.computeBoundingBox();
+  const { min, max } = edgesGeometry.boundingBox;
+  const EPS = 1e-4;
+
+  const kept = [];
+  for (let i = 0; i < src.count; i += 2) {
+    const y0 = src.getY(i);
+    const y1 = src.getY(i + 1);
+    const flat = Math.abs(y0 - y1) < EPS; // 수평선만 후보다
+    if (flat && dropBottom && Math.abs(y0 - min.y) < EPS) continue;
+    if (flat && dropTop && Math.abs(y0 - max.y) < EPS) continue;
+    kept.push(
+      src.getX(i), y0, src.getZ(i),
+      src.getX(i + 1), y1, src.getZ(i + 1)
+    );
+  }
+  return kept;
+}
+
 /** 두꺼운 네온 윤곽선. LineBasicMaterial 은 GPU 가 1px 로 강제해서
  *  블룸을 먹여도 거의 번지지 않는다. Line2 라야 두께가 나온다. */
-export function createEdges(geometry, color, { lineWidth, lineOpacity }) {
-  const lsg = new LineSegmentsGeometry().fromEdgesGeometry(
-    new THREE.EdgesGeometry(geometry)
-  );
+export function createEdges(
+  geometry,
+  color,
+  { lineWidth, lineOpacity },
+  rings = null
+) {
+  const edgesGeometry = new THREE.EdgesGeometry(geometry);
+  const lsg = new LineSegmentsGeometry();
+  if (rings && (rings.dropBottom || rings.dropTop)) {
+    lsg.setPositions(stripRings(edgesGeometry, rings));
+  } else {
+    lsg.fromEdgesGeometry(edgesGeometry);
+  }
 
   const material = new LineMaterial({
     color: new THREE.Color(color),

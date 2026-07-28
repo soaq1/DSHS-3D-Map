@@ -325,7 +325,8 @@ body {
   border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
 }
 
-#panel-meta #panel-type {
+#panel-meta #panel-type,
+#panel-meta #panel-parts {
   color: rgba(219, 234, 254, 0.55);
   background: rgba(219, 234, 254, 0.06);
   border-color: rgba(219, 234, 254, 0.12);

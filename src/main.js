@@ -5,6 +5,7 @@ import roomsData from "../data/rooms.json";
 import {
   TYPE_STYLE,
   buildPalette,
+  buildTypeColors,
   roomColor,
   createRoomMaterial,
   createEdges,
@@ -19,11 +20,14 @@ window.__appBooted = true;
 const SCALE = 0.02; // 1cm -> 0.02 단위 (1m = 2단위)
 const WALL_HEIGHT = roomsData.meta.wallHeight ?? 250; // cm
 const TOP_Y = WALL_HEIGHT * SCALE; // 방 하나의 높이 (지오메트리 로컬)
-const FLOOR_HEIGHT = (roomsData.meta.floorHeight ?? 400) * SCALE;
+const FLOOR_HEIGHT_CM = roomsData.meta.floorHeight ?? 400;
+const FLOOR_HEIGHT = FLOOR_HEIGHT_CM * SCALE;
 
 const FLOORS = roomsData.meta.floors ?? [1];
 const BASE_FLOOR = Math.min(...FLOORS);
 const PALETTE = buildPalette(roomsData.meta);
+// 홀처럼 동 색을 덮어쓰는 종류. 없으면 빈 객체라 동 색이 그대로 쓰인다.
+const TYPE_COLORS = buildTypeColors(roomsData.meta);
 
 /** 층 번호 -> 그 층을 놓을 높이 */
 const floorY = (floor) => (floor - BASE_FLOOR) * FLOOR_HEIGHT;
@@ -89,7 +93,7 @@ scene.add(roomGroup);
 
 /** 오목 다각형까지 그대로 살리기 위해 Shape + ExtrudeGeometry 를 쓴다.
  *  BoxGeometry / bounding box 를 쓰면 L자·U자 복도가 다른 방을 뚫는다. */
-function buildGeometry(polygon) {
+function buildGeometry(polygon, height = WALL_HEIGHT) {
   // rooms.json 의 polygon 은 [x, z] (cm). Shape 는 XY 평면이다.
   // rotateX(-90°) 는 (x, y, z) -> (x, z, -y) 이므로 shape 의 y 가 world 의 -z 로
   // 간다. world.z 를 json z 와 같게 두려면(= 좌우반전 없음) 여기서 미리
@@ -102,7 +106,7 @@ function buildGeometry(polygon) {
   const shape = new THREE.Shape(pts);
 
   const geometry = new THREE.ExtrudeGeometry(shape, {
-    depth: WALL_HEIGHT,
+    depth: height,
     bevelEnabled: false,
   });
 
@@ -126,17 +130,81 @@ for (const floor of FLOORS) {
   floorGroups.set(floor, g);
 }
 
+// ---------------------------------------------------------------- 수직 기둥
+// 계단실·엘리베이터(rooms.json 의 shaft)는 층마다 뜬 상자가 아니라 1층부터
+// 꼭대기까지 이어진 육면체 하나로 보여야 한다. 층 격리를 유지해야 하므로
+// 층별 메시는 그대로 두고, 이어 붙여서 하나처럼 보이게 만든다.
+//   1) 맨 위층을 뺀 나머지는 벽 높이(250) 가 아니라 층고(400) 로 압출해
+//      위층 바닥에 닿게 한다 — 이게 없으면 층마다 150cm 씩 떠 있다
+//   2) 이음매의 가로 테두리를 지운다 (createEdges 의 rings)
+//   3) 밝기 그라데이션을 기둥 전체 기준으로 계산한다 (uHOffset)
+const SHAFT_MERGE_TOLERANCE = 500; // cm. 같은 기둥으로 볼 중심 간 거리
+
+const center2d = (polygon) => {
+  const xs = polygon.map((p) => p[0]);
+  const zs = polygon.map((p) => p[1]);
+  return [(Math.min(...xs) + Math.max(...xs)) / 2,
+          (Math.min(...zs) + Math.max(...zs)) / 2];
+};
+
+/** 이름이 같고 평면상 거의 같은 자리에 있는 shaft 방들을 기둥 하나로 묶는다.
+ *  이름만으로 묶으면 나중에 동마다 '엘리베이터' 가 생겼을 때 서로 다른 기둥이
+ *  하나로 합쳐진다. 좌표를 격자로 반올림해 묶으면 경계에 걸린 기둥이 갈라진다. */
+const shaftColumns = new Map(); // room.id -> { bottom, top }
+{
+  const groups = [];
+  for (const room of roomsData.rooms) {
+    if (!room.shaft) continue;
+    const [cx, cz] = center2d(room.polygon);
+    const hit = groups.find(
+      (g) =>
+        g.name === room.name &&
+        Math.hypot(g.cx - cx, g.cz - cz) < SHAFT_MERGE_TOLERANCE
+    );
+    if (hit) hit.rooms.push(room);
+    else groups.push({ name: room.name, cx, cz, rooms: [room] });
+  }
+  for (const g of groups) {
+    const floors = g.rooms.map((r) => r.floor);
+    // 중간 층 방을 아직 안 그린 기둥이 있다(2층 계단실5). 그 자리는 비워두는 게
+    // 맞으므로 '위아래로 이어붙일지' 는 span 이 아니라 실제 층 유무로 판단한다.
+    const span = {
+      bottom: Math.min(...floors),
+      top: Math.max(...floors),
+      floors: new Set(floors),
+    };
+    for (const r of g.rooms) shaftColumns.set(r.id, span);
+  }
+}
+
 for (const room of roomsData.rooms) {
   const style = TYPE_STYLE[room.type] ?? TYPE_STYLE.normal;
-  const color = roomColor(room, PALETTE);
-  const geometry = buildGeometry(room.polygon);
+  const color = roomColor(room, PALETTE, TYPE_COLORS);
+
+  const column = shaftColumns.get(room.id);
+  const joinUp = !!column && column.floors.has(room.floor + 1);
+  const joinDown = !!column && column.floors.has(room.floor - 1);
+  // 위층 칸이 있을 때만 층고까지 늘린다. 맨 위 칸을 늘리면 기둥이 다른 방보다
+  // 툭 튀어나오고, 중간이 비어 있으면 허공에 뚜껑 없는 상자가 남는다.
+  const geometry = buildGeometry(
+    room.polygon,
+    joinUp ? FLOOR_HEIGHT_CM : WALL_HEIGHT
+  );
 
   const material = createRoomMaterial(color, style.opacity);
-  material.uniforms.uHeight.value = TOP_Y;
+  material.uniforms.uHeight.value = column
+    ? (column.top - column.bottom) * FLOOR_HEIGHT + TOP_Y
+    : TOP_Y;
+  material.uniforms.uHOffset.value = column
+    ? (room.floor - column.bottom) * FLOOR_HEIGHT
+    : 0;
 
   const mesh = new THREE.Mesh(geometry, material);
 
-  const edges = createEdges(geometry, color, style);
+  const edges = createEdges(geometry, color, style, {
+    dropBottom: joinDown,
+    dropTop: joinUp,
+  });
   mesh.add(edges);
   lineMaterials.push(edges.material);
 
@@ -151,6 +219,39 @@ for (const room of roomsData.rooms) {
   (floorGroups.get(room.floor) ?? roomGroup).add(mesh);
   roomMeshes.push(mesh);
 }
+
+// ---------------------------------------------------------------- 이름 묶음
+// 같은 층에 이름이 같은 방이 여럿 있다 (1층 홀 3개, 꿈돋움 라운지 2개 …).
+// 검색 결과에 똑같은 줄이 여러 개 뜨면 뭐가 뭔지 구분이 안 되므로 한 줄로 합치고,
+// 고르면 해당하는 방을 전부 같이 켠다.
+//
+// 홀은 한 발 더 나간다. 벽으로 나뉘어 그려졌을 뿐 실제로는 이어진 한 공간이라
+// 호버와 정보 패널까지 묶음 단위로 본다(= 한 객체). 나머지는 각각 따로 있는
+// 방이 이름만 같은 것이므로 객체는 그대로 두고 검색에서만 함께 다룬다.
+//
+// 동은 키에 넣지 않는다. 1층 홀 3개는 2동·2동·1동에 흩어져 있지만 같은 홀이다.
+const nameGroups = new Map(); // "층|이름" -> mesh[]
+
+for (const m of roomMeshes) {
+  const { floor, name } = m.userData.room;
+  const key = floor + "|" + name;
+  const list = nameGroups.get(key);
+  if (list) list.push(m);
+  else nameGroups.set(key, [m]);
+}
+
+for (const meshes of nameGroups.values()) {
+  const merged = meshes.length > 1 && meshes[0].userData.room.type === "hall";
+  for (const m of meshes) {
+    m.userData.group = meshes;
+    m.userData.merged = merged;
+  }
+}
+
+const groupList = [...nameGroups.values()];
+
+/** 클릭·호버가 건드릴 범위. 한 객체로 묶은 홀만 통째로, 나머지는 자기 자신만. */
+const pickGroup = (mesh) => (mesh.userData.merged ? mesh.userData.group : [mesh]);
 
 // ---------------------------------------------------------------- 필터
 // 층 / 동 / 종류 세 가지가 겹쳐서 걸린다. 한 곳에서만 판정해야 어긋나지 않는다.
@@ -186,9 +287,10 @@ function applyFilters() {
     (m) => m.visible && m.userData.room.type !== "circulation"
   );
 
-  // 숨겨진 방이 선택/호버 상태로 남지 않게 한다
-  if (selected && !selected.visible) setSelected(null);
-  if (hovered && !hovered.visible) setHovered(null);
+  // 숨겨진 방이 선택/호버 상태로 남지 않게 한다.
+  // 묶음은 일부만 가려질 수 있으므로, 하나라도 보이면 선택을 유지한다.
+  if (selected.length && !selected.some((m) => m.visible)) setSelected(null);
+  if (hovered.length && !hovered.some((m) => m.visible)) setHovered(null);
 }
 
 // ---------------------------------------------------------------- 카메라 배치
@@ -285,21 +387,39 @@ const { composer, bloom } = createComposer(renderer, scene, camera);
 // ---------------------------------------------------------------- 상호작용
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
-let hovered = null;
-let selected = null;
+// 묶음 때문에 둘 다 배열이다. 빈 배열 = 아무것도 아님.
+let hovered = [];
+let selected = [];
+let hoveredSet = new Set();
+let selectedSet = new Set();
 
 const panel = document.getElementById("panel");
 const panelName = document.getElementById("panel-name");
 const panelBuilding = document.getElementById("panel-building");
 const panelType = document.getElementById("panel-type");
+const panelParts = document.getElementById("panel-parts");
 
-function openPanel(mesh) {
-  const { room } = mesh.userData;
+/** 묶음의 동 표기. 여러 동에 걸친 홀은 어느 한 동으로 적을 수 없다. */
+function buildingLabel(meshes) {
+  const names = [...new Set(meshes.map((m) => m.userData.room.building))];
+  return names.length === 1 ? names[0] : names.join(" · ");
+}
+
+function openPanel(meshes) {
+  const { room } = meshes[0].userData;
+  const area = meshes.reduce((sum, m) => sum + (m.userData.room.area ?? 0), 0);
+
   panelName.textContent = room.name;
-  panelBuilding.textContent = room.building;
   panelType.textContent = TYPE_LABEL[room.type] ?? room.type;
   panelBuilding.textContent =
-    FLOORS.length > 1 ? `${room.building} · ${room.floor}F` : room.building;
+    FLOORS.length > 1
+      ? `${buildingLabel(meshes)} · ${room.floor}F`
+      : buildingLabel(meshes);
+  // 여러 덩어리를 함께 켰다는 사실과 합계 면적을 같이 보여준다.
+  panelParts.textContent =
+    meshes.length > 1
+      ? `${meshes.length}곳 · ${Math.round(area)}㎡`
+      : `${Math.round(area)}㎡`;
   panel.style.setProperty(
     "--accent",
     "#" + (PALETTE[room.building] ?? new THREE.Color(0x22d3ee)).getHexString()
@@ -318,34 +438,37 @@ function refreshEdge(m) {
   const d = m.userData;
   const mat = d.edges.material;
 
-  if (m === selected) {
+  if (selectedSet.has(m)) {
     mat.color.setHex(0xffffff);
     mat.opacity = 1;
     mat.linewidth = d.baseLineWidth * 1.8;
-  } else if (m === hovered) {
+  } else if (hoveredSet.has(m)) {
     mat.color.setHex(0xeaffff);
     mat.opacity = Math.min(1, d.baseLineOpacity * 1.6);
     mat.linewidth = d.baseLineWidth * 1.3;
   } else {
     mat.color.copy(d.baseColor);
-    mat.opacity = d.baseLineOpacity * (selected ? DIM_OTHERS : 1);
+    mat.opacity = d.baseLineOpacity * (selected.length ? DIM_OTHERS : 1);
     mat.linewidth = d.baseLineWidth;
   }
 }
 
 /** 선택 상태. 대비는 선택된 방을 밝히기보다 나머지를 눌러서 만든다.
- *  매스를 밝히면 겹쳐 보이는 곳이 다시 타버리기 때문이다. */
-function setSelected(mesh) {
-  selected = mesh;
+ *  매스를 밝히면 겹쳐 보이는 곳이 다시 타버리기 때문이다.
+ *  묶음이면 여러 개가 한꺼번에 켜진다. */
+function setSelected(meshes) {
+  selected = meshes ?? [];
+  selectedSet = new Set(selected);
 
   for (const m of roomMeshes) {
-    const isSel = m === mesh;
+    const isSel = selectedSet.has(m);
     m.material.uniforms.uSelected.value = isSel ? 1 : 0;
-    m.material.uniforms.uDim.value = !mesh || isSel ? 1 : DIM_OTHERS;
+    m.material.uniforms.uDim.value =
+      selected.length === 0 || isSel ? 1 : DIM_OTHERS;
     refreshEdge(m);
   }
 
-  if (mesh) openPanel(mesh);
+  if (selected.length) openPanel(selected);
   else closePanel();
 }
 
@@ -370,8 +493,11 @@ function flyTo(toTarget, toDistance, seconds = 0.7) {
   };
 }
 
-function flyToRoom(mesh) {
-  const b = new THREE.Box3().setFromObject(mesh);
+/** 묶음이면 전부 화면에 들어오게 잡는다. 하나만 잡으면 "둘 다 켰는데 한쪽만
+ *  보이는" 상태가 되어 동시에 켠 의미가 없다. */
+function flyToRoom(meshes) {
+  const b = new THREE.Box3();
+  for (const m of meshes) b.expandByObject(m);
   const c = b.getCenter(new THREE.Vector3());
   const r = Math.max(b.getBoundingSphere(new THREE.Sphere()).radius, TOP_Y);
   // 방이 화면의 약 1/3 을 채우도록
@@ -417,7 +543,8 @@ if (FLOORS.length > 1) {
 const TYPE_LABEL = {
   normal: "교실 · 시설",
   service: "화장실",
-  circulation: "복도 · 계단",
+  circulation: "계단 · 엘리베이터",
+  hall: "홀",
 };
 
 function buildChips(el, items, active, onToggle) {
@@ -485,22 +612,27 @@ buildChips(
   }
 );
 
-function setHovered(mesh) {
-  if (hovered === mesh) return;
+function setHovered(meshes) {
+  const next = meshes ?? [];
+  // 같은 묶음 안에서 움직일 때 매번 다시 칠하지 않는다
+  if (next.length === hovered.length && next.every((m) => hoveredSet.has(m))) {
+    return;
+  }
 
   const prev = hovered;
-  hovered = mesh;
+  hovered = next;
+  hoveredSet = new Set(next);
 
-  if (prev) {
-    prev.material.uniforms.uHover.value = 0;
-    refreshEdge(prev);
+  for (const m of prev) {
+    m.material.uniforms.uHover.value = 0;
+    refreshEdge(m);
   }
-  if (hovered) {
-    hovered.material.uniforms.uHover.value = 1;
-    refreshEdge(hovered);
+  for (const m of hovered) {
+    m.material.uniforms.uHover.value = 1;
+    refreshEdge(m);
   }
 
-  canvas.style.cursor = hovered ? "pointer" : "default";
+  canvas.style.cursor = hovered.length ? "pointer" : "default";
 }
 
 /** 마우스 아래의 방을 찾는다. circulation 은 pickables 에 없으므로 자동 제외.
@@ -521,7 +653,8 @@ let downAt = null;
 let dragged = false;
 
 canvas.addEventListener("pointermove", (event) => {
-  setHovered(pick(event));
+  const m = pick(event);
+  setHovered(m ? pickGroup(m) : null);
   if (downAt && Math.hypot(event.clientX - downAt.x, event.clientY - downAt.y) > 5) {
     dragged = true;
   }
@@ -541,7 +674,8 @@ canvas.addEventListener("click", (event) => {
   dragged = false;
   if (wasDrag) return; // 회전 드래그 끝의 click 은 선택으로 치지 않는다
 
-  setSelected(pick(event)); // 빈 곳이면 null -> 선택 해제 + 패널 닫힘
+  const m = pick(event);
+  setSelected(m ? pickGroup(m) : null); // 빈 곳이면 선택 해제 + 패널 닫힘
 });
 
 canvas.addEventListener("contextmenu", (event) => event.preventDefault());
@@ -552,35 +686,40 @@ const resultsEl = document.getElementById("search-results");
 const clearEl = document.getElementById("search-clear");
 let cursor = -1; // 키보드로 고른 항목
 
+/** 검색은 방이 아니라 묶음 단위다. 같은 층에 이름이 같은 방이 3개 있어도
+ *  결과는 한 줄이고, 고르면 3개가 한꺼번에 켜진다. */
 function matchRooms(q) {
   const s = q.trim().toLowerCase();
   if (!s) return [];
-  return roomMeshes
-    .filter((m) => m.userData.room.name.toLowerCase().includes(s))
+  return groupList
+    .filter((g) => g[0].userData.room.name.toLowerCase().includes(s))
     .sort((a, b) => {
-      const an = a.userData.room.name.toLowerCase();
-      const bn = b.userData.room.name.toLowerCase();
+      const an = a[0].userData.room.name.toLowerCase();
+      const bn = b[0].userData.room.name.toLowerCase();
       // 앞에서부터 일치하는 것을 먼저
       return (an.startsWith(s) ? 0 : 1) - (bn.startsWith(s) ? 0 : 1) ||
-        a.userData.room.floor - b.userData.room.floor ||
+        a[0].userData.room.floor - b[0].userData.room.floor ||
         an.localeCompare(bn);
     })
     .slice(0, 40);
 }
 
-function chooseRoom(mesh) {
-  const room = mesh.userData.room;
+function chooseRoom(meshes) {
   // 필터에 가려 안 보이는 방을 골랐으면 보이도록 필터를 풀어준다.
   // 안 그러면 "검색은 되는데 아무 일도 안 일어나는" 상태가 된다.
-  if (!isShown(room)) {
-    activeBuildings.add(room.building);
-    activeTypes.add(room.type);
-    if (activeFloor !== null && activeFloor !== room.floor) setFloorSilently(null);
+  // 묶음은 동이 갈릴 수 있으므로(1층 홀) 구성원 전부를 풀어줘야 한다.
+  if (!meshes.every((m) => isShown(m.userData.room))) {
+    for (const m of meshes) {
+      activeBuildings.add(m.userData.room.building);
+      activeTypes.add(m.userData.room.type);
+    }
+    const floor = meshes[0].userData.room.floor;
+    if (activeFloor !== null && activeFloor !== floor) setFloorSilently(null);
     applyFilters();
     syncChips();
   }
-  setSelected(mesh);
-  flyToRoom(mesh);
+  setSelected(meshes);
+  flyToRoom(meshes);
 }
 
 function setFloorSilently(floor) {
@@ -610,18 +749,22 @@ function renderResults(list) {
     resultsEl.hidden = false;
     return;
   }
-  list.forEach((mesh) => {
-    const room = mesh.userData.room;
+  list.forEach((meshes) => {
+    const room = meshes[0].userData.room;
     const b = document.createElement("button");
     b.type = "button";
     b.appendChild(document.createTextNode(room.name));
     const w = document.createElement("span");
     w.className = "where";
-    w.textContent =
-      FLOORS.length > 1 ? `${room.building} · ${room.floor}F` : room.building;
+    const where =
+      FLOORS.length > 1
+        ? `${buildingLabel(meshes)} · ${room.floor}F`
+        : buildingLabel(meshes);
+    // 이름이 같은 방이 여럿이면 몇 곳인지 알려준다 (한 줄로 합쳤기 때문)
+    w.textContent = meshes.length > 1 ? `${where} · ${meshes.length}곳` : where;
     b.appendChild(w);
     b.addEventListener("click", () => {
-      chooseRoom(mesh);
+      chooseRoom(meshes);
       resultsEl.hidden = true;
     });
     resultsEl.appendChild(b);

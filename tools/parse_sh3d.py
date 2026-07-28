@@ -38,6 +38,7 @@ TYPE_COLORS = {  # check.png 전용 (뷰어 색과 무관)
     "normal": "#cfe3f7",
     "circulation": "#ffe1b3",
     "service": "#d9f2d0",
+    "hall": "#e2e2ea",
 }
 
 _warnings = []
@@ -206,6 +207,11 @@ def classify_type(name, cfg):
     return "normal"
 
 
+def is_shaft(name, cfg):
+    """층을 관통하는 공간(계단실·엘리베이터)인가. 뷰어가 기둥 하나로 그린다."""
+    return any(w in name for w in (cfg.get("shaftWords") or []))
+
+
 # ---------------------------------------------------------------- 본체
 def main():
     cfg = load_config()
@@ -281,14 +287,24 @@ def main():
                 room_to_labels[ri].append(li)
 
         unnamed = []
+        duplicated = set()   # 같은 글자 라벨이 겹쳐 있는 방
         for ri in range(len(polys)):
-            n = len(room_to_labels.get(ri, []))
-            if n == 0:
+            hits = room_to_labels.get(ri, [])
+            if len(hits) == 0:
                 unnamed.append(ri)
-            elif n > 1:
-                names = ", ".join(labels[i][1] for i in room_to_labels[ri])
-                errors.append("%d층: room %s 안에 라벨이 %d개입니다: %s"
-                              % (floor, polys[ri][0][:13], n, names))
+            elif len(hits) > 1:
+                names = [labels[i][1] for i in hits]
+                # 글자가 다르면 어느 쪽이 방 이름인지 알 수 없다 -> 중단.
+                # 글자가 같으면 같은 라벨을 두 번 찍은 것이라 뜻이 갈리지 않는다.
+                if len(set(names)) == 1:
+                    duplicated.add(ri)
+                    warn("%d층: '%s' 라벨이 한 방에 %d개 겹쳐 있습니다 "
+                         "(도면에서 하나만 남기세요). 이름은 그대로 씁니다."
+                         % (floor, names[0], len(names)))
+                else:
+                    errors.append("%d층: room %s 안에 라벨이 %d개입니다: %s"
+                                  % (floor, polys[ri][0][:13], len(hits),
+                                     ", ".join(names)))
 
         if orphans:
             orphan_total += len(orphans)
@@ -309,7 +325,8 @@ def main():
                 warn("%d층: 라벨 없는 방 %d개 -> %s  ('이름없음' 으로 둡니다)"
                      % (floor, len(unnamed), detail))
 
-        matched[floor] = {ri: v[0] for ri, v in room_to_labels.items() if len(v) == 1}
+        matched[floor] = {ri: v[0] for ri, v in room_to_labels.items()
+                          if len(v) == 1 or ri in duplicated}
 
     if errors:
         print("\n=== 매칭 실패 ===")
@@ -356,7 +373,7 @@ def main():
             room_id = base_id if used_ids[base_id] == 1 else "%s-%d" % (
                 base_id, used_ids[base_id])
 
-            rooms.append({
+            record = {
                 "id": room_id,
                 "name": name,
                 "building": building,
@@ -366,7 +383,11 @@ def main():
                 # y 부호는 그대로 둔다 (뷰어에서 처리). 중심만 이동.
                 "polygon": [[round(x - cx0, 2), round(y - cy0, 2)] for x, y in pts],
                 "_poly": poly,   # 검증용, 출력 전에 제거
-            })
+            }
+            # 참인 방에만 넣는다. 대부분의 방에 false 를 달면 json 만 커진다.
+            if is_shaft(name, cfg):
+                record["shaft"] = True
+            rooms.append(record)
 
     bxs = [p[0] for r in rooms for p in r["polygon"]]
     bzs = [p[1] for r in rooms for p in r["polygon"]]
@@ -390,6 +411,8 @@ def main():
             "floorHeight": cfg.get("floorHeight", 400),
             "floors": floors,
             "buildings": buildings_meta,
+            # 종류별 색 덮어쓰기. 뷰어가 동 색보다 우선해서 읽는다.
+            "typeColors": cfg.get("typeColors") or {},
             "center": [round(cx0, 2), round(cy0, 2)],
             "bounds": {
                 "x": [round(min(bxs), 2), round(max(bxs), 2)],
@@ -554,7 +577,9 @@ def draw(rooms, floors):
 
 if __name__ == "__main__":
     try:
+        # stderr 도 같이 해야 die() 의 한글 메시지가 안 깨진다
         sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
     except Exception:
         pass
     main()
