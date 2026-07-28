@@ -321,6 +321,94 @@ const labelPos = new THREE.Vector3();
 const labelEdge = new THREE.Vector3();
 const camRight = new THREE.Vector3();
 
+// ---------------------------------------------------------------- 패널 붙이기
+// 방 정보를 화면 구석이 아니라 고른 방 옆에 띄운다. 클릭한 곳에서 답이 나오는 게
+// 눈과 손이 덜 움직인다. 방을 클릭해도 카메라가 안 움직이므로(비행은 검색으로
+// 고를 때뿐) 패널이 클릭 직후에 미끄러지는 일은 없다.
+//
+// 방이 화면 밖으로 나가거나 카메라 뒤로 돌아가면 구석으로 되돌린다. 붙어 있으려다
+// 잘리거나 사라지면 정보를 못 보는 것이라 더 나쁘다.
+let panelPinned = false; // 이름표를 뺄지 판단하는 데도 쓴다
+const PANEL_GAP = 18; // 방과 패널 사이 여백(px)
+const PANEL_EDGE = 16; // 화면 가장자리에서 최소한 띄울 거리
+const panelAnchor = new THREE.Vector3();
+
+/** 어느 메시에 붙일지. 묶음이면 제일 큰 덩어리에 붙인다 —
+ *  1층 홀처럼 조각이 여럿이면 큰 쪽 옆에 있어야 자연스럽다. */
+function anchorMesh(meshes) {
+  let best = meshes[0];
+  for (const m of meshes) {
+    if ((m.userData.room.area ?? 0) > (best.userData.room.area ?? 0)) best = m;
+  }
+  return best;
+}
+
+function unpinPanel() {
+  panelPinned = false;
+  if (!panel.classList.contains("pinned") && !panel.style.left) return;
+  panel.classList.remove("pinned");
+  // 인라인 위치를 반드시 같이 지운다. 남겨두면 left/top 과 CSS 의 right/bottom 이
+  // 네 변 모두 걸려서 패널이 그 사이로 길게 늘어난다.
+  panel.style.left = "";
+  panel.style.top = "";
+}
+
+function updatePanelAnchor() {
+  if (panel.hidden || !selected.length) {
+    unpinPanel();
+    return;
+  }
+
+  // 좁은 화면은 패널이 위쪽 고정이다. 떠다니면 손가락에 가리고 화면도 좁다.
+  if (window.matchMedia("(max-width: 720px)").matches) {
+    unpinPanel();
+    return;
+  }
+
+  const mesh = anchorMesh(selected);
+  const room = mesh.userData.room;
+  if (!mesh.visible || !room.center) {
+    unpinPanel();
+    return;
+  }
+
+  // 매스 윗면에 맞춘다. 한가운데로 잡으면 패널이 방에 파묻힌 것처럼 보인다.
+  panelAnchor.set(
+    room.center[0] * SCALE,
+    mesh.userData.height * SCALE,
+    room.center[1] * SCALE
+  );
+  mesh.localToWorld(panelAnchor);
+  panelAnchor.project(camera);
+
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const x = (panelAnchor.x * 0.5 + 0.5) * w;
+  const y = (-panelAnchor.y * 0.5 + 0.5) * h;
+
+  // 카메라 뒤이거나 화면에서 한참 벗어났으면 구석으로
+  const out =
+    panelAnchor.z > 1 || x < -w * 0.2 || x > w * 1.2 || y < -h * 0.2 || y > h * 1.2;
+  if (out) {
+    unpinPanel();
+    return;
+  }
+
+  const box = panel.getBoundingClientRect();
+  // 기본은 오른쪽. 오른쪽이 좁으면 왼쪽으로 넘긴다
+  let left = x + PANEL_GAP;
+  if (left + box.width > w - PANEL_EDGE) left = x - PANEL_GAP - box.width;
+  left = Math.min(Math.max(left, PANEL_EDGE), w - box.width - PANEL_EDGE);
+
+  let top = y - box.height / 2;
+  top = Math.min(Math.max(top, PANEL_EDGE), h - box.height - PANEL_EDGE);
+
+  panelPinned = true;
+  panel.classList.add("pinned");
+  panel.style.left = Math.round(left) + "px";
+  panel.style.top = Math.round(top) + "px";
+}
+
 function updateLabels() {
   // 전체 뷰는 층이 겹쳐 이름표가 네 겹으로 쌓인다. 층별 뷰에서만 켠다.
   const on = activeFloor !== null;
@@ -332,8 +420,10 @@ function updateLabels() {
   if (LABEL_MIN_PX > 0) camRight.setFromMatrixColumn(camera.matrixWorld, 0);
 
   for (const l of labels) {
-    // mesh.visible 에 층·동·종류 필터가 이미 다 반영돼 있다
-    let show = l.mesh.visible;
+    // mesh.visible 에 층·동·종류 필터가 이미 다 반영돼 있다.
+    // 패널이 그 방 옆에 붙어 있으면 이름표는 뺀다 — 바로 옆 카드에 같은 이름이
+    // 큰 글씨로 있어서 겹쳐 읽히기만 한다.
+    let show = l.mesh.visible && !(panelPinned && selectedSet.has(l.mesh));
 
     if (show) {
       labelPos.copy(l.anchor);
@@ -1069,6 +1159,7 @@ function animate() {
 
   // 렌더 뒤에 부른다. 카메라·오브젝트 행렬이 최신이라 따로 갱신할 필요가 없다.
   updateLabels();
+  updatePanelAnchor();
 }
 
 // 드래그·휠로 직접 조작하면 진행 중인 비행을 취소한다

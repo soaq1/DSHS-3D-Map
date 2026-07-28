@@ -8,7 +8,7 @@
  *
  *  채우는 법은 tools/apps-script/README.md 에 있다. 배포하면
  *  https://script.google.com/macros/s/AKfy…/exec 꼴의 주소가 나온다. */
-export const RESERVATION_ENDPOINT = "";
+export const RESERVATION_ENDPOINT = "https://script.google.com/macros/s/AKfycbw07KQWyFRGsKrnLES4HBFecxLpi04DewOvAwqHujT_XnydEzoIfjPAHNpXxHvo313AMA/exec";
 
 /** 교시 시간표.
  *

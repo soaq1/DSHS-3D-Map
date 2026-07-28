@@ -434,13 +434,16 @@ body {
   border-color: rgba(34, 211, 238, 0.45);
 }
 
-/* 우측 하단 고정 패널. --accent 는 선택된 방의 동 색으로 JS 가 채운다 */
+/* 방 정보 패널. --accent 는 선택된 방의 동 색으로 JS 가 채운다.
+   넓은 화면에서는 고른 방 옆에 따라다니고(.pinned), 방이 화면 밖으로 나가면
+   여기 적힌 우측 하단으로 되돌아온다. */
 #panel {
   --accent: var(--cyan);
   position: fixed;
   right: 28px;
   bottom: 28px;
   min-width: 232px;
+  max-width: 300px;
   padding: 16px 48px 18px 22px;
   background: rgba(6, 14, 26, 0.72);
   border: 1px solid color-mix(in srgb, var(--accent) 38%, transparent);
@@ -465,10 +468,18 @@ body {
   box-shadow: 0 0 14px var(--accent);
 }
 
+/* 고른 방 옆에 붙어 따라다니는 상태. 자리는 JS 가 매 프레임 left/top 으로 잡는다.
+   transform 을 안 쓰는 이유: 등장 애니메이션이 transform 을 쓰고 있어서 서로 덮어쓴다.
+   요소 하나뿐이라 left/top 으로 옮겨도 비용이 문제되지 않는다. */
+#panel.pinned {
+  right: auto;
+  bottom: auto;
+}
+
+/* 위치가 매 프레임 바뀌므로 등장 애니메이션은 투명도만 건드린다 */
 @keyframes panel-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
   }
 }
 
@@ -954,9 +965,24 @@ body {
     font-size: 20px;
   }
 
-  /* 방이 촘촘한 층에서 작은 화면에 글자가 뭉치지 않게 살짝 줄인다 */
+  /* 손가락으로 누르는 버튼이라 폭을 꽉 채우고 키운다 */
+  #panel-book {
+    width: 100%;
+    height: 46px;
+    margin-top: 13px;
+    font-size: 15px;
+  }
+
+  /* 이름표는 화면이 작을수록 오히려 더 잘 보여야 한다. 겹침이 늘어나는 대신
+     테두리를 두껍게 하고 글자를 하얗게 해서 하나하나는 확실히 읽히게 한다. */
   #labels div {
-    max-width: 66px;
-    font-size: 9px;
+    max-width: 80px;
+    font-size: 11px;
+    color: #ffffff;
+    text-shadow:
+      0 0 4px #050b14,
+      0 0 4px #050b14,
+      0 0 4px #050b14,
+      0 0 9px #050b14;
   }
 }
