@@ -212,6 +212,48 @@ def is_shaft(name, cfg):
     return any(w in name for w in (cfg.get("shaftWords") or []))
 
 
+def apply_roof_shafts(rooms, cfg):
+    """어떤 층에 어떤 동의 방이 계단실뿐이면, 그 동에는 그 층이 없는 것이다.
+
+    4동이 그렇다 — 3층까지만 있는 동인데 계단실은 지붕을 뚫고 조금 더 올라간다.
+    그 층에 계단실 상자를 하나 더 세우면 허공에 방이 떠 있는 것처럼 보인다.
+    그래서 위층 칸은 빼고, 아래층 칸에 roofTop 을 달아 뷰어가 층고만큼 늘려
+    지붕 위로 살짝 내밀고 끝내게 한다.
+
+    자동 판정이라 나중에 그 층에 진짜 방을 그리면 규칙이 저절로 꺼진다.
+    """
+    if not cfg.get("roofShafts", True):
+        return rooms
+
+    by_floor_building = defaultdict(list)
+    for r in rooms:
+        by_floor_building[(r["floor"], r["building"])].append(r)
+
+    drop = set()
+    for (floor, building), group in by_floor_building.items():
+        if not all(r.get("shaft") for r in group):
+            continue
+        below = {r["name"] for r in by_floor_building.get((floor - 1, building), [])}
+        for r in group:
+            # 아래층에 같은 계단실이 있어야 '지붕 위로 내민 꼭대기' 가 성립한다.
+            # 없으면 홀로 뜬 계단실이므로 손대지 않고 그대로 두어 눈에 띄게 한다.
+            if r["name"] not in below:
+                warn("%d층 %s '%s' 은 아래층에 이어지는 칸이 없습니다. 그대로 둡니다."
+                     % (floor, building, r["name"]))
+                continue
+            drop.add(id(r))
+            for lower in by_floor_building[(floor - 1, building)]:
+                if lower["name"] == r["name"]:
+                    lower["roofTop"] = True
+        if drop:
+            print("지붕 계단실: %d층 %s 에는 방이 계단실뿐이라 그 층이 없는 것으로 봅니다. "
+                  "%s 를 빼고 %d층 칸을 지붕 위로 내밉니다."
+                  % (floor, building,
+                     ", ".join(sorted(r["name"] for r in group)), floor - 1))
+
+    return [r for r in rooms if id(r) not in drop]
+
+
 # ---------------------------------------------------------------- 본체
 def main():
     cfg = load_config()
@@ -388,6 +430,8 @@ def main():
             if is_shaft(name, cfg):
                 record["shaft"] = True
             rooms.append(record)
+
+    rooms = apply_roof_shafts(rooms, cfg)
 
     bxs = [p[0] for r in rooms for p in r["polygon"]]
     bzs = [p[1] for r in rooms for p in r["polygon"]]

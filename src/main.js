@@ -85,9 +85,10 @@ controls.dampingFactor = 0.05;
 controls.enableZoom = true; // 휠 줌
 controls.enablePan = true; // 우클릭 팬
 controls.screenSpacePanning = true;
-// 테스트 단계라 각도 제한 없이 자유 회전 (바닥 아래까지)
+// 위로는 바로 위(평면도)까지, 아래로는 수평선까지. 바닥 밑으로 내려가면 방이
+// FrontSide 라 거의 안 보여서 화면이 망가진 것처럼 느껴진다.
 controls.minPolarAngle = 0;
-controls.maxPolarAngle = Math.PI;
+controls.maxPolarAngle = Math.PI / 2 - 0.02;
 
 // ---------------------------------------------------------------- 방 생성
 const roomGroup = new THREE.Group();
@@ -168,12 +169,16 @@ const shaftColumns = new Map(); // room.id -> { bottom, top }
   }
   for (const g of groups) {
     const floors = g.rooms.map((r) => r.floor);
+    const topFloor = Math.max(...floors);
     // 중간 층 방을 아직 안 그린 기둥이 있다(2층 계단실5). 그 자리는 비워두는 게
     // 맞으므로 '위아래로 이어붙일지' 는 span 이 아니라 실제 층 유무로 판단한다.
     const span = {
       bottom: Math.min(...floors),
-      top: Math.max(...floors),
+      top: topFloor,
       floors: new Set(floors),
+      // 꼭대기 칸이 지붕 위로 내민 계단실이면 기둥이 층고만큼 더 길다.
+      // 밝기 그라데이션 기준을 그만큼 늘려야 위쪽이 하얗게 타지 않는다.
+      roofTop: g.rooms.some((r) => r.floor === topFloor && r.roofTop),
     };
     for (const r of g.rooms) shaftColumns.set(r.id, span);
   }
@@ -186,19 +191,23 @@ for (const room of roomsData.rooms) {
   const column = shaftColumns.get(room.id);
   const joinUp = !!column && column.floors.has(room.floor + 1);
   const joinDown = !!column && column.floors.has(room.floor - 1);
+  // 지붕 위로 내민 계단실 꼭대기(파서의 roofShafts). 위에 칸은 없지만 높이는
+  // 층고만큼 써서 지붕 밖으로 살짝 나오게 한다.
+  const roofTop = room.roofTop === true;
   // 홀처럼 눕혀 깔 종류는 높이를 설정에서 받는다 (cm, 없으면 undefined).
   const flat = TYPE_HEIGHTS[room.type];
   // 위층 칸이 있을 때만 층고까지 늘린다. 맨 위 칸을 늘리면 기둥이 다른 방보다
   // 툭 튀어나오고, 중간이 비어 있으면 허공에 뚜껑 없는 상자가 남는다.
   // 기둥과 납작한 방은 겹치지 않는다 — 계단실은 circulation, 홀은 hall 이다.
-  const height = joinUp ? FLOOR_HEIGHT_CM : flat ?? WALL_HEIGHT;
+  const height = joinUp || roofTop ? FLOOR_HEIGHT_CM : flat ?? WALL_HEIGHT;
   const geometry = buildGeometry(room.polygon, height);
 
   const material = createRoomMaterial(color, style.opacity);
   // 그라데이션 기준 높이. 자기 높이를 줘야 한다 — 30cm 슬래브에 250cm 기준을
   // 쓰면 밝기가 아래쪽 구간에만 걸려 시커멓게 깔린다.
   material.uniforms.uHeight.value = column
-    ? (column.top - column.bottom) * FLOOR_HEIGHT + TOP_Y
+    ? (column.top - column.bottom) * FLOOR_HEIGHT +
+      (column.roofTop ? FLOOR_HEIGHT : TOP_Y)
     : height * SCALE;
   material.uniforms.uHOffset.value = column
     ? (room.floor - column.bottom) * FLOOR_HEIGHT
@@ -311,8 +320,9 @@ const dir = new THREE.Vector3(0.5, Math.SQRT1_2, 0.5).normalize();
  *  boundingSphere 로 맞추면 이 건물처럼 납작하고 대각선 ㅍ자로 퍼진 모양은
  *  구가 과하게 커져 화면 절반이 빈 공간이 된다. bounding box 꼭짓점도
  *  마찬가지로 모서리가 허공이라 헐거워진다. 그래서 진짜 정점을 쓴다. */
-function fitDistance(rooms, target, margin = 1.04) {
-  const forward = dir.clone().negate(); // 카메라가 바라보는 방향
+function fitDistance(rooms, target, viewDir = dir, margin = 1.04) {
+  margin = margin ?? 1.04;
+  const forward = viewDir.clone().normalize().negate(); // 카메라가 바라보는 방향
   const right = new THREE.Vector3()
     .crossVectors(forward, camera.up)
     .normalize();
@@ -367,6 +377,15 @@ camera.updateProjectionMatrix();
 scene.fog.density = Math.sqrt(-Math.log(FOG_VISIBILITY_AT_CAMERA)) / dist;
 
 controls.target.copy(center);
+
+// 줌 한계. 기준은 '전체가 딱 들어오는 거리' 인 dist 다.
+// 밖으로는 그 1.6배까지만 — 더 빼면 건물이 안개 속 점이 되고 되돌아오기 어렵다.
+// 안쪽은 넉넉히 열어둔다. flyToRoom 이 제일 작은 방(엘리베이터 8.5㎡)에 다가갈 때
+// 쓰는 거리보다 작아야 한다. 안 그러면 검색으로 방을 고를 때마다 컨트롤이
+// 카메라를 도로 밀어내 화면이 튄다.
+controls.minDistance = dist * 0.04;
+controls.maxDistance = dist * 1.6;
+
 controls.update();
 
 // ---------------------------------------------------------------- 환경
@@ -488,14 +507,16 @@ document.getElementById("panel-close").addEventListener("click", () => setSelect
 let flight = null;
 const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
-function flyTo(toTarget, toDistance, seconds = 0.7) {
+function flyTo(toTarget, toDistance, { seconds = 0.7, direction = null } = {}) {
   const dirNow = camera.position.clone().sub(controls.target);
   const d = toDistance ?? dirNow.length();
+  // direction 을 준 경우(시점 프리셋)에만 방향을 바꾼다.
+  const unit = (direction ?? dirNow).clone().normalize();
   flight = {
     fromTarget: controls.target.clone(),
     toTarget: toTarget.clone(),
     fromPos: camera.position.clone(),
-    toPos: toTarget.clone().addScaledVector(dirNow.normalize(), d),
+    toPos: toTarget.clone().addScaledVector(unit, d),
     t: 0,
     dur: seconds,
   };
@@ -516,7 +537,45 @@ function flyToAll() {
   const shown = roomsData.rooms.filter(isShown);
   if (!shown.length) return;
   center.copy(centerOf(shown));
-  flyTo(center, fitDistance(shown, center));
+  flyTo(center, fitDistance(shown, center, camera.position.clone().sub(controls.target)));
+}
+
+// ---------------------------------------------------------------- 시점 프리셋
+// 방향만 정해두면 거리는 그때 보이는 방들에 맞춰 다시 잰다. 층을 하나만 켜둔
+// 상태에서 눌러도 그 층에 딱 맞게 잡힌다.
+//   평면: 정확히 수직으로 두면 방위각이 정의되지 않아 컨트롤이 튄다. 5도쯤 눕히되
+//         기우는 방향을 z 축에 맞춘다. 대각선으로 눕히면 건물이 비스듬히 놓여
+//         평면도가 아니라 그냥 위에서 본 3D 처럼 보인다.
+//   정면: 동이 z 축을 따라 앞뒤로 놓여 있어 완전히 수평으로 보면 앞 동이 나머지를
+//         가린다. 15도쯤 올려 앞 동 너머가 보이게 하고, 여백을 조금 더 줘서
+//         원근이 덜 과장되게 한다. 그래야 층이 쌓인 게 읽힌다.
+const VIEWPOINTS = [
+  { label: "기본", title: "기본 시점 (대각선 위 45°)", dir: dir.clone() },
+  { label: "평면", title: "평면 — 바로 위에서", dir: new THREE.Vector3(0, 1, 0.08) },
+  {
+    label: "정면",
+    title: "정면 — 층이 쌓인 게 보이게",
+    dir: new THREE.Vector3(0, 0.28, -1),
+    margin: 1.2,
+  },
+];
+
+const viewsEl = document.getElementById("views");
+
+for (const vp of VIEWPOINTS) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.textContent = vp.label;
+  b.title = vp.title;
+  b.addEventListener("click", () => {
+    const shown = roomsData.rooms.filter(isShown);
+    if (!shown.length) return;
+    center.copy(centerOf(shown));
+    flyTo(center, fitDistance(shown, center, vp.dir, vp.margin), {
+      direction: vp.dir,
+    });
+  });
+  viewsEl.appendChild(b);
 }
 
 // ---------------------------------------------------------------- 층 선택

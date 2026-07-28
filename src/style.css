@@ -224,12 +224,19 @@ body {
   color: rgba(219, 234, 254, 0.4);
 }
 
-/* 우측 층 선택 (엘리베이터 버튼처럼). 층이 1개면 숨는다 */
-#floors {
+/* 우측 세로 바 — 시점 프리셋 + 층 선택(엘리베이터 버튼처럼). 층이 1개면 층만 숨는다 */
+#rail {
   position: fixed;
   right: 28px;
   top: 50%;
   transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#views,
+#floors {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -239,7 +246,13 @@ body {
   display: none;
 }
 
-#floors button {
+/* 시점 프리셋과 층 선택은 하는 일이 달라서 선으로 갈라 둔다 */
+#views + #floors:not([hidden]) {
+  padding-top: 10px;
+  border-top: 1px solid rgba(219, 234, 254, 0.1);
+}
+
+#rail button {
   width: 44px;
   height: 36px;
   font-family: inherit;
@@ -255,12 +268,12 @@ body {
   transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
 
-#floors button:hover {
+#rail button:hover {
   color: var(--cyan);
   border-color: rgba(34, 211, 238, 0.4);
 }
 
-#floors button[aria-pressed="true"] {
+#rail button[aria-pressed="true"] {
   color: #ffffff;
   background: rgba(34, 211, 238, 0.16);
   border-color: rgba(34, 211, 238, 0.7);
