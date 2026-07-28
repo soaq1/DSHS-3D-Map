@@ -13,6 +13,10 @@
   <body>
     <canvas id="scene"></canvas>
 
+    <!-- 방 이름표. 씬이 아니라 캔버스 위 DOM 이다 (블룸에 글자가 뭉개지지 않게).
+         내용은 JS 가 채우고, 층별 뷰에서만 보인다. -->
+    <div id="labels" hidden></div>
+
     <div id="hud">
       <div id="hud-title">서부고 배치도</div>
       <div id="hud-hint">

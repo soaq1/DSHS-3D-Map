@@ -24,6 +24,49 @@ body {
   height: 100vh;
 }
 
+/* 방 이름표 레이어. 캔버스 위에 덮이지만 클릭은 그대로 통과시킨다 */
+#labels {
+  position: fixed;
+  inset: 0;
+  overflow: hidden; /* 화면 밖으로 나간 이름표를 잘라낸다 */
+  pointer-events: none;
+  user-select: none;
+}
+
+#labels[hidden] {
+  display: none;
+}
+
+#labels div {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* 넘치면 줄바꿈. 긴 이름이 옆 방까지 침범하는 걸 이걸로 막는다.
+     한글은 어절 단위로 끊어야 읽히므로 keep-all 이 필요하다. */
+  max-width: 74px;
+  word-break: keep-all;
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-align: center;
+  color: rgba(234, 246, 255, 0.88);
+  /* 어두운 테두리를 세 겹 겹친다. 이름표끼리 겹쳐도, 네온 선 위에 올라가도 읽힌다 */
+  text-shadow:
+    0 0 3px #050b14,
+    0 0 3px #050b14,
+    0 0 7px #050b14;
+  white-space: pre-line;
+}
+
+#labels div.on {
+  color: #ffffff;
+  text-shadow:
+    0 0 3px #050b14,
+    0 0 3px #050b14,
+    0 0 10px var(--cyan);
+}
+
 /* 좌측 상단 안내 */
 #hud {
   position: fixed;

@@ -231,6 +231,7 @@ for (const room of roomsData.rooms) {
     baseColor: color,
     baseLineOpacity: style.lineOpacity,
     baseLineWidth: style.lineWidth,
+    height, // 이름표를 매스 한가운데 놓는 데 쓴다 (방마다 다르다)
   };
 
   (floorGroups.get(room.floor) ?? roomGroup).add(mesh);
@@ -269,6 +270,110 @@ const groupList = [...nameGroups.values()];
 
 /** 클릭·호버가 건드릴 범위. 한 객체로 묶은 홀만 통째로, 나머지는 자기 자신만. */
 const pickGroup = (mesh) => (mesh.userData.merged ? mesh.userData.group : [mesh]);
+
+// ---------------------------------------------------------------- 방 이름표
+// 층별 뷰에서 방마다 중심에 이름을 띄운다. 씬 안이 아니라 캔버스 위 DOM 이다 —
+// 스프라이트로 만들면 후처리 블룸을 그대로 먹어 작은 한글이 번져 뭉갠다. DOM 은
+// 후처리 바깥이라 글자가 깨끗하고, 2D 레이어라 시점이 바뀌어도 항상 정면을 본다.
+//
+// 홀은 뺀다. 이미 바닥판으로 깔려 있고 층마다 하나뿐이라 이름을 띄워도 얻는 게 없다.
+const labelsEl = document.getElementById("labels");
+
+// 방의 화면상 폭이 이 값(px)보다 좁으면 이름표를 건너뛴다. 0 이면 전부 표시.
+// 띄워 보고 너무 빽빽하면 이 숫자만 올리면 작은 방부터 사라진다.
+const LABEL_MIN_PX = 0;
+
+const labels = [];
+
+for (const mesh of roomMeshes) {
+  const room = mesh.userData.room;
+  if (room.type === "hall" || !room.center) continue;
+
+  const el = document.createElement("div");
+  el.textContent = room.name;
+  labelsEl.appendChild(el);
+
+  const xs = room.polygon.map((p) => p[0]);
+  const zs = room.polygon.map((p) => p[1]);
+
+  labels.push({
+    mesh,
+    el,
+    shown: true, // 첫 프레임에 반드시 한 번 맞춰지도록 반대값으로 시작한다
+    lit: true,
+    // 기준점은 로컬 좌표로 들고 있는다. 층 그룹 높이와 인트로 애니메이션이 mesh 의
+    // matrixWorld 에 이미 반영돼 있어서 localToWorld 한 번이면 끝난다.
+    anchor: new THREE.Vector3(
+      room.center[0] * SCALE,
+      (mesh.userData.height * SCALE) / 2,
+      room.center[1] * SCALE
+    ),
+    // LABEL_MIN_PX 를 켰을 때만 쓰는 값 — 방의 반폭(월드 단위)
+    halfSpan:
+      (Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...zs) - Math.min(...zs)) *
+        SCALE) /
+      2,
+  });
+}
+
+const labelPos = new THREE.Vector3();
+const labelEdge = new THREE.Vector3();
+const camRight = new THREE.Vector3();
+
+function updateLabels() {
+  // 전체 뷰는 층이 겹쳐 이름표가 네 겹으로 쌓인다. 층별 뷰에서만 켠다.
+  const on = activeFloor !== null;
+  if (labelsEl.hidden === on) labelsEl.hidden = !on;
+  if (!on) return;
+
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  if (LABEL_MIN_PX > 0) camRight.setFromMatrixColumn(camera.matrixWorld, 0);
+
+  for (const l of labels) {
+    // mesh.visible 에 층·동·종류 필터가 이미 다 반영돼 있다
+    let show = l.mesh.visible;
+
+    if (show) {
+      labelPos.copy(l.anchor);
+      l.mesh.localToWorld(labelPos);
+
+      if (LABEL_MIN_PX > 0) {
+        labelEdge.copy(labelPos).addScaledVector(camRight, l.halfSpan);
+        labelEdge.project(camera);
+      }
+      labelPos.project(camera);
+
+      // z > 1 이면 카메라 뒤다. 투영이 뒤집혀 엉뚱한 자리에 찍힌다.
+      show = labelPos.z <= 1;
+
+      if (show && LABEL_MIN_PX > 0) {
+        show = Math.abs(labelEdge.x - labelPos.x) * w >= LABEL_MIN_PX;
+      }
+    }
+
+    // DOM 은 바뀔 때만 건드린다. 매 프레임 display 를 쓰면 레이아웃을 다시 잡는다.
+    if (show !== l.shown) {
+      l.el.style.display = show ? "" : "none";
+      l.shown = show;
+    }
+    if (!show) continue;
+
+    // 위치는 transform 으로만 옮긴다. left/top 을 쓰면 매 프레임 레이아웃이 돈다.
+    l.el.style.transform =
+      "translate(-50%,-50%) translate(" +
+      ((labelPos.x * 0.5 + 0.5) * w).toFixed(1) +
+      "px," +
+      ((-labelPos.y * 0.5 + 0.5) * h).toFixed(1) +
+      "px)";
+
+    const lit = selectedSet.has(l.mesh);
+    if (lit !== l.lit) {
+      l.el.classList.toggle("on", lit);
+      l.lit = lit;
+    }
+  }
+}
 
 // ---------------------------------------------------------------- 필터
 // 층 / 동 / 종류 세 가지가 겹쳐서 걸린다. 한 곳에서만 판정해야 어긋나지 않는다.
@@ -934,6 +1039,9 @@ function animate() {
 
   controls.update();
   composer.render();
+
+  // 렌더 뒤에 부른다. 카메라·오브젝트 행렬이 최신이라 따로 갱신할 필요가 없다.
+  updateLabels();
 }
 
 // 드래그·휠로 직접 조작하면 진행 중인 비행을 취소한다

@@ -424,6 +424,9 @@ def main():
                 "area": round(poly.area / 10000.0, 1),
                 # y 부호는 그대로 둔다 (뷰어에서 처리). 중심만 이동.
                 "polygon": [[round(x - cx0, 2), round(y - cy0, 2)] for x, y in pts],
+                # 이름표를 놓을 자리. 동 분류에 쓴 중심점과 같은 점이라 어긋나지 않는다.
+                # 이 도면에는 오목한 방이 없어 중심점이 전부 방 안쪽에 들어간다.
+                "center": [round(c.x - cx0, 2), round(c.y - cy0, 2)],
                 "_poly": poly,   # 검증용, 출력 전에 제거
             }
             # 참인 방에만 넣는다. 대부분의 방에 false 를 달면 json 만 커진다.
