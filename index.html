@@ -17,37 +17,66 @@
          내용은 JS 가 채우고, 층별 뷰에서만 보인다. -->
     <div id="labels" hidden></div>
 
-    <div id="hud">
-      <div id="hud-title">서부고 배치도</div>
-      <div id="hud-hint">
-        드래그 회전 · 휠 줌 · 우클릭 팬<br />교실을 클릭하면 이름이 표시됩니다
+    <!-- 조작은 전부 한 곳에 모은다. 넓은 화면에서는 왼쪽 패널,
+         좁은 화면에서는 아래 시트로 바뀐다 (style.css 의 미디어 쿼리).
+         칩과 버튼 내용은 rooms.json 의 meta 를 보고 JS 가 만든다. -->
+    <aside id="ui">
+      <div id="ui-head">
+        <div id="hud-title">서부고 배치도</div>
+        <button
+          id="ui-toggle"
+          type="button"
+          aria-expanded="true"
+          aria-controls="ui-body"
+          aria-label="조작 패널 접기"
+        ></button>
       </div>
-    </div>
 
-    <!-- 검색 + 필터. 칩은 rooms.json 의 meta 를 보고 JS 가 만든다. -->
-    <div id="controls">
-      <div id="search-wrap">
-        <input
-          id="search"
-          type="text"
-          placeholder="방 이름 검색 (예: 보건실, 2-1)"
-          autocomplete="off"
-          spellcheck="false"
-        />
-        <button id="search-clear" type="button" aria-label="지우기" hidden>
-          &times;
-        </button>
-        <div id="search-results" hidden></div>
+      <div id="ui-body">
+        <!-- 조작법은 입력 장치에 따라 다르다. 마우스 안내를 폰에서 보여주면
+             아무 도움이 안 되므로 화면 폭에 따라 갈아 끼운다. -->
+        <p id="hud-hint">
+          <span class="pc">드래그 회전 · 휠 줌 · 우클릭 팬</span>
+          <span class="touch">한 손가락 회전 · 두 손가락 확대·이동</span>
+          <br />교실을 누르면 이름이 표시됩니다
+        </p>
+
+        <div id="search-wrap">
+          <input
+            id="search"
+            type="text"
+            placeholder="방 이름 검색 (예: 보건실, 2-1)"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button id="search-clear" type="button" aria-label="지우기" hidden>
+            &times;
+          </button>
+          <div id="search-results" hidden></div>
+        </div>
+
+        <section class="grp">
+          <h2>동</h2>
+          <div id="legend" class="chips"></div>
+        </section>
+
+        <section class="grp">
+          <h2>종류</h2>
+          <div id="types" class="chips"></div>
+        </section>
+
+        <section class="grp">
+          <h2>시점</h2>
+          <div id="views" class="seg"></div>
+        </section>
+
+        <!-- 층이 1개뿐이면 JS 가 이 구역을 통째로 숨긴다 -->
+        <section class="grp" id="sec-floors" hidden>
+          <h2>층</h2>
+          <div id="floors" class="seg"></div>
+        </section>
       </div>
-      <div id="legend"></div>
-      <div id="types"></div>
-    </div>
-
-    <!-- 우측 세로 바. 시점 프리셋 + 층 선택 (층이 1개뿐이면 층 쪽만 숨긴다) -->
-    <div id="rail">
-      <div id="views"></div>
-      <div id="floors" hidden></div>
-    </div>
+    </aside>
 
     <div id="panel" hidden>
       <button id="panel-close" type="button" aria-label="닫기">&times;</button>

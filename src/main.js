@@ -697,8 +697,8 @@ const floorsEl = document.getElementById("floors");
 const floorButtons = [];
 
 if (FLOORS.length > 1) {
-  // 위층이 위에 오도록 내림차순
-  for (const label of ["전체", ...[...FLOORS].sort((a, b) => b - a)]) {
+  // 가로로 늘어놓으므로 왼쪽부터 낮은 층 순이다 (세로 바일 때는 반대였다)
+  for (const label of ["전체", ...[...FLOORS].sort((a, b) => a - b)]) {
     const b = document.createElement("button");
     const isAll = label === "전체";
     b.textContent = isAll ? "전체" : label + "F";
@@ -708,8 +708,26 @@ if (FLOORS.length > 1) {
     floorsEl.appendChild(b);
     floorButtons.push(b);
   }
-  floorsEl.hidden = false;
+  // 구역 제목까지 같이 드러낸다. 버튼만 켜면 '층' 이라는 제목이 홀로 남는다.
+  document.getElementById("sec-floors").hidden = false;
 }
+
+// ---------------------------------------------------------------- 패널 접기
+// 좁은 화면에서는 지도부터 보여준다. 넓은 화면에서는 펼친 채로 시작한다.
+const uiEl = document.getElementById("ui");
+const uiToggle = document.getElementById("ui-toggle");
+
+function setUiOpen(open) {
+  uiEl.classList.toggle("closed", !open);
+  uiToggle.setAttribute("aria-expanded", String(open));
+  uiToggle.setAttribute("aria-label", open ? "조작 패널 접기" : "조작 패널 펼치기");
+}
+
+uiToggle.addEventListener("click", () =>
+  setUiOpen(uiEl.classList.contains("closed"))
+);
+
+setUiOpen(!window.matchMedia("(max-width: 720px)").matches);
 
 // ---------------------------------------------------------------- 범례 겸 필터
 const TYPE_LABEL = {

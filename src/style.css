@@ -97,68 +97,140 @@ body {
     0 0 10px var(--cyan);
 }
 
-/* 좌측 상단 안내 */
-#hud {
+/* ------------------------------------------------------------------ 조작 패널
+   검색·필터·시점·층을 한 패널에 모은다. 예전에는 왼쪽(검색·필터)과
+   오른쪽(시점·층)으로 갈라져 있어서 눈과 손이 화면을 오갔다. */
+#ui {
   position: fixed;
-  top: 26px;
-  left: 28px;
-  pointer-events: none;
-  user-select: none;
+  top: 22px;
+  left: 22px;
+  width: 272px;
+  max-height: calc(100vh - 44px);
+  display: flex;
+  flex-direction: column;
+  background: rgba(6, 14, 26, 0.74);
+  border: 1px solid rgba(219, 234, 254, 0.1);
+  border-radius: 14px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(16px);
+  overflow: hidden;
+}
+
+#ui-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 14px 15px 18px;
 }
 
 #hud-title {
-  font-size: 13px;
+  flex: 1;
+  font-size: 15px;
   font-weight: 900; /* 제목 — 페이퍼로지 9 */
-  letter-spacing: 0.22em;
+  letter-spacing: 0.14em;
   color: var(--cyan);
-  text-shadow: 0 0 16px rgba(34, 211, 238, 0.55);
+  text-shadow: 0 0 16px rgba(34, 211, 238, 0.5);
 }
 
-#hud-title::after {
+/* 접기 버튼. 넓은 화면에서도 지도를 넓게 보고 싶을 때가 있다 */
+#ui-toggle {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  position: relative;
+  background: none;
+  border: 1px solid rgba(219, 234, 254, 0.12);
+  border-radius: 9px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+#ui-toggle:hover {
+  border-color: rgba(34, 211, 238, 0.45);
+  background: rgba(34, 211, 238, 0.08);
+}
+
+/* 화살표는 문자 대신 테두리로 그린다. 폰트가 안 왔을 때도 모양이 같다 */
+#ui-toggle::before {
   content: "";
-  display: block;
-  width: 34px;
-  height: 1px;
-  margin-top: 10px;
-  background: linear-gradient(90deg, var(--cyan), transparent);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  margin: -5px 0 0 -4px;
+  border-left: 1.5px solid rgba(219, 234, 254, 0.62);
+  border-bottom: 1.5px solid rgba(219, 234, 254, 0.62);
+  transform: rotate(45deg);
+  transition: transform 0.2s, margin 0.2s;
+}
+
+#ui.closed #ui-toggle::before {
+  margin: -2px 0 0 -4px;
+  transform: rotate(-135deg);
+}
+
+#ui-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 18px 18px;
+  overflow-y: auto;
+}
+
+#ui.closed #ui-body {
+  display: none;
 }
 
 #hud-hint {
-  margin-top: 10px;
-  font-size: 11px;
-  line-height: 1.9;
-  letter-spacing: 0.02em;
-  color: rgba(219, 234, 254, 0.4);
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.85;
+  color: rgba(219, 234, 254, 0.42);
 }
 
-/* 좌측 검색 + 필터 */
-#controls {
-  position: fixed;
-  top: 108px;
-  left: 28px;
-  width: 232px;
+#hud-hint .touch {
+  display: none;
+}
+
+/* 구역 제목. 무엇을 고르는 칸인지 한 눈에 보이게 한다 */
+.grp {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
+.grp[hidden] {
+  display: none;
+}
+
+.grp h2 {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  color: rgba(219, 234, 254, 0.34);
+}
+
+/* ------------------------------------------------------------------ 검색 */
 #search-wrap {
   position: relative;
 }
 
 #search {
   width: 100%;
-  padding: 9px 28px 9px 12px;
+  height: 40px;
+  padding: 0 34px 0 14px;
   font-family: inherit;
   font-weight: inherit; /* 폼 요소는 굵기를 안 물려받는다 (UA 기본 400) */
-  font-size: 12px;
+  font-size: 13px;
   color: var(--ink);
-  background: rgba(6, 14, 26, 0.72);
-  border: 1px solid rgba(219, 234, 254, 0.14);
-  border-radius: 5px;
+  background: rgba(219, 234, 254, 0.05);
+  border: 1px solid rgba(219, 234, 254, 0.12);
+  border-radius: 10px;
   outline: none;
-  backdrop-filter: blur(8px);
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, background 0.15s;
 }
 
 #search::placeholder {
@@ -166,23 +238,30 @@ body {
 }
 
 #search:focus {
-  border-color: rgba(34, 211, 238, 0.6);
+  background: rgba(219, 234, 254, 0.07);
+  border-color: rgba(34, 211, 238, 0.55);
 }
 
 #search-clear {
   position: absolute;
   top: 50%;
-  right: 6px;
+  right: 8px;
   transform: translateY(-50%);
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   padding: 0;
-  font-size: 15px;
+  font-size: 17px;
   line-height: 1;
   color: rgba(219, 234, 254, 0.45);
   background: none;
   border: none;
+  border-radius: 6px;
   cursor: pointer;
+}
+
+#search-clear:hover {
+  color: var(--cyan);
+  background: rgba(34, 211, 238, 0.1);
 }
 
 #search-clear[hidden] {
@@ -191,15 +270,15 @@ body {
 
 #search-results {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 6px);
   left: 0;
   right: 0;
-  max-height: 244px;
+  max-height: 252px;
   overflow-y: auto;
-  background: rgba(6, 14, 26, 0.94);
-  border: 1px solid rgba(34, 211, 238, 0.28);
-  border-radius: 5px;
-  backdrop-filter: blur(10px);
+  background: rgba(8, 17, 30, 0.97);
+  border: 1px solid rgba(34, 211, 238, 0.26);
+  border-radius: 10px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5);
   z-index: 5;
 }
 
@@ -210,12 +289,12 @@ body {
 #search-results button {
   display: flex;
   align-items: baseline;
-  gap: 7px;
+  gap: 8px;
   width: 100%;
-  padding: 7px 11px;
+  padding: 9px 12px;
   font-family: inherit;
   font-weight: inherit; /* 폼 요소는 굵기를 안 물려받는다 (UA 기본 400) */
-  font-size: 12px;
+  font-size: 13px;
   text-align: left;
   color: var(--ink);
   background: none;
@@ -235,56 +314,53 @@ body {
 
 #search-results .where {
   margin-left: auto;
-  font-size: 10px;
-  color: rgba(219, 234, 254, 0.4);
-}
-
-#search-results .none {
-  padding: 9px 11px;
+  flex: none;
   font-size: 11px;
   color: rgba(219, 234, 254, 0.4);
 }
 
-/* 범례 겸 필터 칩 */
-#legend,
-#types {
+#search-results .none {
+  padding: 11px 12px;
+  font-size: 12px;
+  color: rgba(219, 234, 254, 0.4);
+}
+
+/* ------------------------------------------------------------------ 필터 칩 */
+.chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 6px;
 }
 
-#legend button,
-#types button {
+.chips button {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 9px;
+  gap: 6px;
+  padding: 6px 11px;
   font-family: inherit;
   font-weight: inherit; /* 폼 요소는 굵기를 안 물려받는다 (UA 기본 400) */
-  font-size: 10px;
-  letter-spacing: 0.02em;
-  color: rgba(219, 234, 254, 0.55);
-  background: rgba(6, 14, 26, 0.6);
-  border: 1px solid rgba(219, 234, 254, 0.12);
-  border-radius: 20px;
+  font-size: 12px;
+  color: rgba(219, 234, 254, 0.6);
+  background: rgba(219, 234, 254, 0.05);
+  border: 1px solid rgba(219, 234, 254, 0.1);
+  border-radius: 999px;
   cursor: pointer;
-  backdrop-filter: blur(8px);
-  transition: color 0.15s, border-color 0.15s, opacity 0.15s;
+  transition: color 0.15s, border-color 0.15s, opacity 0.15s, background 0.15s;
 }
 
-#legend button[aria-pressed="false"],
-#types button[aria-pressed="false"] {
-  opacity: 0.38;
+.chips button[aria-pressed="false"] {
+  opacity: 0.4;
 }
 
 #legend button[aria-pressed="true"] {
   color: #ffffff;
+  background: color-mix(in srgb, var(--swatch) 14%, transparent);
   border-color: color-mix(in srgb, var(--swatch) 55%, transparent);
 }
 
 #types button[aria-pressed="true"] {
   color: #ffffff;
-  border-color: rgba(219, 234, 254, 0.35);
+  border-color: rgba(219, 234, 254, 0.32);
 }
 
 #legend .dot {
@@ -295,65 +371,67 @@ body {
   box-shadow: 0 0 8px var(--swatch);
 }
 
-#legend .n,
-#types .n {
+.chips .n {
+  font-size: 11px;
   color: rgba(219, 234, 254, 0.4);
 }
 
-/* 우측 세로 바 — 시점 프리셋 + 층 선택(엘리베이터 버튼처럼). 층이 1개면 층만 숨는다 */
-#rail {
-  position: fixed;
-  right: 28px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+/* ------------------------------------------------------------ 분절 버튼 묶음
+   시점·층처럼 '하나만 고르는' 것은 한 덩어리로 붙여 놓는다. 낱개 버튼이
+   흩어져 있는 것보다 무엇과 무엇 중 고르는지가 분명하다. */
+.seg {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 3px;
+  padding: 3px;
+  background: rgba(219, 234, 254, 0.05);
+  border: 1px solid rgba(219, 234, 254, 0.08);
+  border-radius: 11px;
 }
 
-#views,
-#floors {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-#floors[hidden] {
-  display: none;
-}
-
-/* 시점 프리셋과 층 선택은 하는 일이 달라서 선으로 갈라 둔다 */
-#views + #floors:not([hidden]) {
-  padding-top: 10px;
-  border-top: 1px solid rgba(219, 234, 254, 0.1);
-}
-
-#rail button {
-  width: 44px;
-  height: 36px;
+.seg button {
+  height: 32px;
+  padding: 0 4px;
   font-family: inherit;
   font-weight: inherit; /* 폼 요소는 굵기를 안 물려받는다 (UA 기본 400) */
   font-size: 12px;
-  letter-spacing: 0.04em;
-  color: rgba(219, 234, 254, 0.5);
-  background: rgba(6, 14, 26, 0.6);
-  border: 1px solid rgba(219, 234, 254, 0.12);
-  border-radius: 5px;
+  letter-spacing: 0.02em;
+  color: rgba(219, 234, 254, 0.55);
+  background: none;
+  border: none;
+  border-radius: 8px;
   cursor: pointer;
-  backdrop-filter: blur(8px);
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  transition: color 0.15s, background 0.15s;
 }
 
-#rail button:hover {
+.seg button:hover {
   color: var(--cyan);
-  border-color: rgba(34, 211, 238, 0.4);
+  background: rgba(34, 211, 238, 0.1);
 }
 
-#rail button[aria-pressed="true"] {
-  color: #ffffff;
-  background: rgba(34, 211, 238, 0.16);
-  border-color: rgba(34, 211, 238, 0.7);
-  box-shadow: 0 0 16px rgba(34, 211, 238, 0.25);
+.seg button[aria-pressed="true"] {
+  color: #061018;
+  background: var(--cyan);
+  box-shadow: 0 0 14px rgba(34, 211, 238, 0.35);
+}
+
+/* 시점은 '지금 어디' 가 아니라 '거기로 보내줘' 다. 누른 상태가 남지 않으므로
+   채워진 묶음으로 두면 아무것도 안 골라진 것처럼 보인다. 낱개 버튼으로 둔다. */
+#views {
+  background: none;
+  border: none;
+  padding: 0;
+  gap: 6px;
+}
+
+#views button {
+  border: 1px solid rgba(219, 234, 254, 0.12);
+  border-radius: 9px;
+}
+
+#views button:hover {
+  border-color: rgba(34, 211, 238, 0.45);
 }
 
 /* 우측 하단 고정 패널. --accent 는 선택된 방의 동 색으로 JS 가 채운다 */
@@ -495,4 +573,85 @@ body {
   font-size: 11px;
   word-break: break-all;
   color: rgba(219, 234, 254, 0.3);
+}
+
+/* ------------------------------------------------------------------ 좁은 화면
+   조작 패널을 아래 시트로 내린다. 엄지가 닿는 곳이고, 왼쪽에 세로로 세워두면
+   가로폭의 절반을 먹어 정작 지도가 안 보인다.
+   정보 패널은 반대로 위로 올린다. 둘 다 아래에 두면 서로 가린다. */
+@media (max-width: 720px) {
+  #ui {
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: auto;
+    max-height: 72vh;
+    border-width: 1px 0 0;
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -14px 40px rgba(0, 0, 0, 0.5);
+    /* 홈 인디케이터가 있는 기기에서 마지막 줄이 가려지지 않게 한다 */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* 시트를 잡아 여닫는 손잡이처럼 보이게 한다 */
+  #ui-head {
+    padding: 14px 16px;
+  }
+
+  #ui-body {
+    padding: 0 16px 18px;
+  }
+
+  #hud-hint .pc {
+    display: none;
+  }
+
+  #hud-hint .touch {
+    display: inline;
+  }
+
+  /* 손가락으로 누르는 곳은 키운다 */
+  #ui-toggle {
+    width: 38px;
+    height: 38px;
+  }
+
+  .chips button {
+    padding: 8px 13px;
+    font-size: 13px;
+  }
+
+  .seg button {
+    height: 40px;
+    font-size: 13px;
+  }
+
+  #search {
+    height: 44px;
+    font-size: 14px;
+  }
+
+  #search-results button {
+    padding: 12px;
+  }
+
+  #panel {
+    top: 14px;
+    right: 14px;
+    bottom: auto;
+    left: 14px;
+    min-width: 0;
+    padding: 13px 44px 15px 18px;
+  }
+
+  #panel-name {
+    font-size: 20px;
+  }
+
+  /* 방이 촘촘한 층에서 작은 화면에 글자가 뭉치지 않게 살짝 줄인다 */
+  #labels div {
+    max-width: 66px;
+    font-size: 9px;
+  }
 }
