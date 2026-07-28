@@ -717,6 +717,12 @@ body {
   display: none;
 }
 
+/* 예약 현황을 받아오는 동안. 이때 고르면 이미 잡힌 교시를 고를 수 있다 */
+.resv-periods.loading {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
 .resv-period {
   display: flex;
   flex-direction: column;

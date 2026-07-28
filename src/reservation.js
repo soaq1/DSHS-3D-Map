@@ -202,15 +202,52 @@ function buildPeriodChips() {
     } else {
       b.addEventListener("click", () => {
         if (b.classList.contains("taken")) return;
-        if (picked.has(p.key)) picked.delete(p.key);
-        else picked.add(p.key);
-        b.setAttribute("aria-pressed", String(picked.has(p.key)));
-        refreshSpan();
+        pickPeriod(p.key);
       });
     }
     b.setAttribute("aria-pressed", "false");
     els.periods.appendChild(b);
   }
+}
+
+// ------------------------------------------------------------- 교시 고르기
+/** 범위를 채울 때 지나갈 수 있는 교시인가.
+ *
+ *  막는 것은 **이미 예약된 교시뿐**이다. 종례처럼 짧아서 단독으로는 못 고르게 해둔
+ *  시간도 지나가는 것은 된다 — 6교시와 7교시를 이어 잡으면 그 사이 20분도 당연히
+ *  같이 쓰는 것이다. '혼자 고를 수 있나' 와 '지나갈 수 있나' 는 다른 질문이다. */
+const passable = (p) =>
+  !taken.some((t) => overlaps(p.start, p.end, t.start, t.end));
+
+/** 고른 교시는 반드시 이어져 있어야 한다.
+ *
+ *  예전에는 아무 교시나 켰다 껐다 할 수 있었는데, 그러면 3교시와 5교시를 고른 순간
+ *  구간이 10:20~14:10 이 되어 고르지도 않은 4교시가 딸려 들어갔다. 4교시가 이미
+ *  예약돼 있으면 "고르지도 않은 시간이 예약됐다" 는 말이 화면에 뜬다. 무슨 일이
+ *  벌어졌는지 알 길이 없다.
+ *
+ *  그래서 사이를 실제로 채워서 보여준다. 1교시를 켠 채 3교시를 누르면 2교시도 같이
+ *  켜진다 — 어차피 그 시간을 잡는 것이니 눈에 보이는 게 맞다. 사이에 예약된 교시가
+ *  있어 채울 수 없으면 누른 교시 하나로 새로 시작한다. */
+function pickPeriod(key) {
+  const i = PERIODS.findIndex((p) => p.key === key);
+  if (i < 0) return;
+
+  if (picked.has(key)) {
+    // 가운데를 끄면 남은 것이 끊긴다. 뒤쪽을 같이 걷어 이어진 상태를 지킨다.
+    for (const p of PERIODS.slice(i)) picked.delete(p.key);
+  } else {
+    const idx = [...picked].map((k) => PERIODS.findIndex((p) => p.key === k));
+    const run = PERIODS.slice(Math.min(i, ...idx), Math.max(i, ...idx) + 1);
+    picked.clear();
+    if (run.every(passable)) for (const p of run) picked.add(p.key);
+    else picked.add(key);
+  }
+
+  for (const b of els.periods.querySelectorAll("button")) {
+    b.setAttribute("aria-pressed", String(picked.has(b.dataset.key)));
+  }
+  refreshSpan();
 }
 
 // ---------------------------------------------------------------- 상태 갱신
@@ -255,11 +292,21 @@ async function loadDay() {
 
   if (!connected || !current || !els.date.value) return;
 
+  // 앱스크립트 응답은 1~3초 걸린다. 그동안 교시를 못 누르게 막는다.
+  // 열어두면 이미 예약된 교시를 고를 수 있고, 그러면 신청 버튼까지 눌렀다가
+  // 서버가 거절한 뒤에야 알게 된다.
+  els.periods.classList.add("loading");
+  els.span.textContent = "예약 현황 불러오는 중…";
+  els.span.classList.remove("ok");
+  els.submit.disabled = true;
+
   try {
     taken = await getSlots(current.sourceId, els.date.value);
   } catch (err) {
     say("예약 현황을 불러오지 못했습니다 — " + err.message, true);
     return;
+  } finally {
+    els.periods.classList.remove("loading");
   }
 
   for (const p of PERIODS) {
