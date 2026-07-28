@@ -283,6 +283,12 @@ def main():
                for p in r.findall("point")]
         if len(pts) < 3:
             die("꼭짓점이 3개 미만인 room 이 있습니다 -> " + str(r.get("id")))
+        # id 는 sourceId 로 내보내 예약 같은 외부 데이터의 키로 쓴다.
+        # 없으면 그 방을 오래 가리킬 수 없으므로 그냥 넘어가면 안 된다.
+        if not r.get("id"):
+            warn("%d층에 id 없는 room 이 있습니다. 중심 (%.0f, %.0f). "
+                 "예약 등에서 이 방을 가리킬 수 없습니다."
+                 % (f, Polygon(pts).centroid.x, Polygon(pts).centroid.y))
         rooms_by_floor[f].append((r.get("id"), Polygon(pts), pts))
 
     labels_by_floor = defaultdict(list)  # floor -> [(id, name, x, y)]
@@ -417,6 +423,13 @@ def main():
 
             record = {
                 "id": room_id,
+                # Sweet Home 3D 가 방에 붙인 UUID. 이름이나 동 분류가 바뀌어도
+                # 그대로 남으므로 예약처럼 방을 오래 가리켜야 하는 데이터의 키다.
+                # 위의 id 는 '동-층F-이름' 이라 이름만 고쳐도 깨진다 — 실제로
+                # 4동을 나눈 날 26개 방의 id 가 한꺼번에 바뀌었다.
+                # (방을 지우고 새로 그리면 UUID 도 바뀐다. 그래서 이걸 쓰는 쪽은
+                #  이름·층·동을 같이 저장해 둬야 한다. docs/예약-시스템-명세.md 참고)
+                "sourceId": rid,
                 "name": name,
                 "building": building,
                 "floor": floor,

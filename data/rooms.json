@@ -52,6 +52,7 @@
   "rooms": [
     {
       "id": "2동-1F-인쇄실",
+      "sourceId": "room-de679dc7-18fc-4414-a61f-35beb4847efb",
       "name": "인쇄실",
       "building": "2동",
       "floor": 1,
@@ -82,6 +83,7 @@
     },
     {
       "id": "2동-1F-행정실",
+      "sourceId": "room-e1c24a93-5be8-4e77-89e7-dbcf4602a4d9",
       "name": "행정실",
       "building": "2동",
       "floor": 1,
@@ -112,6 +114,7 @@
     },
     {
       "id": "2동-1F-당직실",
+      "sourceId": "room-630900ea-28b0-4ec5-9cdf-e555b6453712",
       "name": "당직실",
       "building": "2동",
       "floor": 1,
@@ -142,6 +145,7 @@
     },
     {
       "id": "2동-1F-계단실3",
+      "sourceId": "room-5d9dfbd1-4da3-4c4d-9e13-ab092d5410e0",
       "name": "계단실3",
       "building": "2동",
       "floor": 1,
@@ -173,6 +177,7 @@
     },
     {
       "id": "2동-1F-창고",
+      "sourceId": "room-ebc13883-ad4a-4a3b-93ed-2e43dee944ad",
       "name": "창고",
       "building": "2동",
       "floor": 1,
@@ -203,6 +208,7 @@
     },
     {
       "id": "2동-1F-화장실 (남)",
+      "sourceId": "room-29fc2501-58d0-4713-989a-d5a8efd2e955",
       "name": "화장실 (남)",
       "building": "2동",
       "floor": 1,
@@ -233,6 +239,7 @@
     },
     {
       "id": "2동-1F-화장실 (여)",
+      "sourceId": "room-3c7d964f-9e72-4bd3-9f9a-ccbb1dd80c27",
       "name": "화장실 (여)",
       "building": "2동",
       "floor": 1,
@@ -263,6 +270,7 @@
     },
     {
       "id": "2동-1F-회의실",
+      "sourceId": "room-4ac5dfb0-fcff-4e82-8d8b-fe1eff7c4b83",
       "name": "회의실",
       "building": "2동",
       "floor": 1,
@@ -293,6 +301,7 @@
     },
     {
       "id": "2동-1F-교장실",
+      "sourceId": "room-2dadd190-49f4-4868-ba50-b835d556718a",
       "name": "교장실",
       "building": "2동",
       "floor": 1,
@@ -323,6 +332,7 @@
     },
     {
       "id": "1동-1F-화장실 (여)",
+      "sourceId": "room-b0139f36-178d-470f-a0ba-9abebc315c18",
       "name": "화장실 (여)",
       "building": "1동",
       "floor": 1,
@@ -353,6 +363,7 @@
     },
     {
       "id": "1동-1F-계단실6",
+      "sourceId": "room-24229fc2-411e-47cf-9e5a-3ecb19878803",
       "name": "계단실6",
       "building": "1동",
       "floor": 1,
@@ -384,6 +395,7 @@
     },
     {
       "id": "1동-1F-계단실7",
+      "sourceId": "room-466b89b7-1c1b-447a-beac-b8bf621fb982",
       "name": "계단실7",
       "building": "1동",
       "floor": 1,
@@ -415,6 +427,7 @@
     },
     {
       "id": "1동-1F-화장실 (남)",
+      "sourceId": "room-bf3673ae-6cd3-46c0-9454-bc84d930d4a8",
       "name": "화장실 (남)",
       "building": "1동",
       "floor": 1,
@@ -445,6 +458,7 @@
     },
     {
       "id": "1동-1F-정독실",
+      "sourceId": "room-fa19e179-e30f-4439-80cf-9c691f171a3d",
       "name": "정독실",
       "building": "1동",
       "floor": 1,
@@ -479,6 +493,7 @@
     },
     {
       "id": "1동-1F-제1과학실",
+      "sourceId": "room-b74df5b6-888a-420f-86a9-5b9b793eaff5",
       "name": "제1과학실",
       "building": "1동",
       "floor": 1,
@@ -509,6 +524,7 @@
     },
     {
       "id": "1동-1F-과학과연구실",
+      "sourceId": "room-98a5f4db-e021-41e9-a491-23f87053fdfc",
       "name": "과학과연구실",
       "building": "1동",
       "floor": 1,
@@ -539,6 +555,7 @@
     },
     {
       "id": "1동-1F-제2과학실",
+      "sourceId": "room-a968ff58-9314-4344-bf48-5770381e33a9",
       "name": "제2과학실",
       "building": "1동",
       "floor": 1,
@@ -569,6 +586,7 @@
     },
     {
       "id": "1동-1F-과학자료실",
+      "sourceId": "room-6b89b6c9-7280-4735-8879-18752a3cbc42",
       "name": "과학자료실",
       "building": "1동",
       "floor": 1,
@@ -599,6 +617,7 @@
     },
     {
       "id": "1동-1F-음악과연구실",
+      "sourceId": "room-4ea4a279-fefe-4d47-beab-4c90ae51e7ef",
       "name": "음악과연구실",
       "building": "1동",
       "floor": 1,
@@ -629,6 +648,7 @@
     },
     {
       "id": "1동-1F-음악실",
+      "sourceId": "room-08004517-94f9-4969-bcbe-38abc9923050",
       "name": "음악실",
       "building": "1동",
       "floor": 1,
@@ -659,6 +679,7 @@
     },
     {
       "id": "1동-1F-wee 클래스",
+      "sourceId": "room-14352e78-4835-4c4b-9c12-9cd0304f431a",
       "name": "wee 클래스",
       "building": "1동",
       "floor": 1,
@@ -689,6 +710,7 @@
     },
     {
       "id": "4동-1F-계단실4",
+      "sourceId": "room-3b95386c-8159-4821-820a-464fab2e3b06",
       "name": "계단실4",
       "building": "4동",
       "floor": 1,
@@ -720,6 +742,7 @@
     },
     {
       "id": "4동-1F-화장실 (여)",
+      "sourceId": "room-e52bbe8a-e655-4f09-bdae-63803b5fd4c2",
       "name": "화장실 (여)",
       "building": "4동",
       "floor": 1,
@@ -754,6 +777,7 @@
     },
     {
       "id": "4동-1F-화장실 (남)",
+      "sourceId": "room-a628d364-6955-421e-a34c-e4afe15de81d",
       "name": "화장실 (남)",
       "building": "4동",
       "floor": 1,
@@ -788,6 +812,7 @@
     },
     {
       "id": "4동-1F-계단실5",
+      "sourceId": "room-a5b76c6e-0937-4bcd-b7de-f52b20b58004",
       "name": "계단실5",
       "building": "4동",
       "floor": 1,
@@ -819,6 +844,7 @@
     },
     {
       "id": "3동-1F-무용실",
+      "sourceId": "room-60cacae3-c08b-46cb-9d91-3e2bdcf45e21",
       "name": "무용실",
       "building": "3동",
       "floor": 1,
@@ -853,6 +879,7 @@
     },
     {
       "id": "3동-1F-미술연구연구실",
+      "sourceId": "room-0c74146f-f28a-41f1-a56b-51c2acdcb1b6",
       "name": "미술연구연구실",
       "building": "3동",
       "floor": 1,
@@ -883,6 +910,7 @@
     },
     {
       "id": "3동-1F-계단실2",
+      "sourceId": "room-bcbc2512-ce53-4e1e-b917-6fafccdb7c21",
       "name": "계단실2",
       "building": "3동",
       "floor": 1,
@@ -914,6 +942,7 @@
     },
     {
       "id": "3동-1F-진로 진학 상담실",
+      "sourceId": "room-527a3569-2576-44df-97eb-cff0d80e2f66",
       "name": "진로 진학 상담실",
       "building": "3동",
       "floor": 1,
@@ -944,6 +973,7 @@
     },
     {
       "id": "3동-1F-진로교육 전용교실",
+      "sourceId": "room-317e9e47-fbac-45f2-8a74-6bfe262395d1",
       "name": "진로교육 전용교실",
       "building": "3동",
       "floor": 1,
@@ -974,6 +1004,7 @@
     },
     {
       "id": "3동-1F-정보연구실",
+      "sourceId": "room-105494ff-95eb-4d45-865f-58e413dcc573",
       "name": "정보연구실",
       "building": "3동",
       "floor": 1,
@@ -1004,6 +1035,7 @@
     },
     {
       "id": "3동-1F-컴퓨터1실",
+      "sourceId": "room-5952e23b-dc64-488e-9e6b-a555b91c2902",
       "name": "컴퓨터1실",
       "building": "3동",
       "floor": 1,
@@ -1034,6 +1066,7 @@
     },
     {
       "id": "3동-1F-방송실",
+      "sourceId": "room-6c802f70-3f27-4381-b51e-0424eb0ed22b",
       "name": "방송실",
       "building": "3동",
       "floor": 1,
@@ -1064,6 +1097,7 @@
     },
     {
       "id": "3동-1F-미술실",
+      "sourceId": "room-8fa94142-8070-4db3-8dec-b3beff2d5893",
       "name": "미술실",
       "building": "3동",
       "floor": 1,
@@ -1094,6 +1128,7 @@
     },
     {
       "id": "3동-1F-미술품 보관실",
+      "sourceId": "room-b273c538-d05f-4d5d-b963-4d17fc84153f",
       "name": "미술품 보관실",
       "building": "3동",
       "floor": 1,
@@ -1124,6 +1159,7 @@
     },
     {
       "id": "3동-1F-화장실 (여)",
+      "sourceId": "room-74a3955d-50a8-4068-a4e1-9c5f694422c6",
       "name": "화장실 (여)",
       "building": "3동",
       "floor": 1,
@@ -1154,6 +1190,7 @@
     },
     {
       "id": "3동-1F-화장실 (남)",
+      "sourceId": "room-263979ce-7200-4ba3-9995-b0f6c9a766cc",
       "name": "화장실 (남)",
       "building": "3동",
       "floor": 1,
@@ -1184,6 +1221,7 @@
     },
     {
       "id": "3동-1F-계단실1",
+      "sourceId": "room-9ac6a88c-78c8-409c-93dc-ca8702a1982e",
       "name": "계단실1",
       "building": "3동",
       "floor": 1,
@@ -1215,6 +1253,7 @@
     },
     {
       "id": "3동-1F-보건실",
+      "sourceId": "room-ce48605e-309d-4a4c-8481-4f01892db66d",
       "name": "보건실",
       "building": "3동",
       "floor": 1,
@@ -1253,6 +1292,7 @@
     },
     {
       "id": "2동-1F-엘리베이터",
+      "sourceId": "room-5e65d765-53b7-4c38-91fc-c17c38989bb7",
       "name": "엘리베이터",
       "building": "2동",
       "floor": 1,
@@ -1284,6 +1324,7 @@
     },
     {
       "id": "1동-1F-계단실8",
+      "sourceId": "room-752aa98f-d063-40bf-aaa3-8b79ef0f0239",
       "name": "계단실8",
       "building": "1동",
       "floor": 1,
@@ -1319,6 +1360,7 @@
     },
     {
       "id": "4동-1F-하늬글샘",
+      "sourceId": "room-1bb5533c-b201-40ea-957d-6877c104e341",
       "name": "하늬글샘",
       "building": "4동",
       "floor": 1,
@@ -1357,6 +1399,7 @@
     },
     {
       "id": "4동-1F-1층 홀",
+      "sourceId": "room-39827f4f-ffb9-422d-bc1f-f5ff5fc665ab",
       "name": "1층 홀",
       "building": "4동",
       "floor": 1,
@@ -1403,6 +1446,7 @@
     },
     {
       "id": "2동-1F-1층 홀",
+      "sourceId": "room-835e1e62-3f06-484b-b758-ce9b96eece69",
       "name": "1층 홀",
       "building": "2동",
       "floor": 1,
@@ -1601,6 +1645,7 @@
     },
     {
       "id": "1동-2F-하늬꿈틀공작소",
+      "sourceId": "room-a0397c12-89c7-459d-9e0f-5a750504a29c",
       "name": "하늬꿈틀공작소",
       "building": "1동",
       "floor": 2,
@@ -1635,6 +1680,7 @@
     },
     {
       "id": "1동-2F-화장실 (여)",
+      "sourceId": "room-00be761c-0382-42eb-9f67-bddb819e7889",
       "name": "화장실 (여)",
       "building": "1동",
       "floor": 2,
@@ -1665,6 +1711,7 @@
     },
     {
       "id": "1동-2F-1-4",
+      "sourceId": "room-3a11c5aa-c526-4dd8-998f-f566153a6388",
       "name": "1-4",
       "building": "1동",
       "floor": 2,
@@ -1695,6 +1742,7 @@
     },
     {
       "id": "1동-2F-1학년 교무실",
+      "sourceId": "room-6a3cdb6e-1da8-4698-ab2a-a945d7e101bb",
       "name": "1학년 교무실",
       "building": "1동",
       "floor": 2,
@@ -1725,6 +1773,7 @@
     },
     {
       "id": "1동-2F-1-3",
+      "sourceId": "room-cd845d8e-9c2a-4a1e-bde4-4234be6b73d5",
       "name": "1-3",
       "building": "1동",
       "floor": 2,
@@ -1755,6 +1804,7 @@
     },
     {
       "id": "1동-2F-1-2",
+      "sourceId": "room-dd964c49-c41c-4beb-b2aa-a1b00dd88c65",
       "name": "1-2",
       "building": "1동",
       "floor": 2,
@@ -1785,6 +1835,7 @@
     },
     {
       "id": "1동-2F-1-1",
+      "sourceId": "room-fb759a2b-4b28-47bd-9174-ffeec54586b9",
       "name": "1-1",
       "building": "1동",
       "floor": 2,
@@ -1815,6 +1866,7 @@
     },
     {
       "id": "1동-2F-화장실 (남)",
+      "sourceId": "room-5ce0a2ba-6fcf-4f21-9078-cb0863a38e62",
       "name": "화장실 (남)",
       "building": "1동",
       "floor": 2,
@@ -1845,6 +1897,7 @@
     },
     {
       "id": "1동-2F-계단실6",
+      "sourceId": "room-5460d85d-2be5-4e4d-a7af-7ee52d39cd2c",
       "name": "계단실6",
       "building": "1동",
       "floor": 2,
@@ -1876,6 +1929,7 @@
     },
     {
       "id": "1동-2F-계단실7",
+      "sourceId": "room-1bce96ba-c533-4ad0-9035-5be068bb574a",
       "name": "계단실7",
       "building": "1동",
       "floor": 2,
@@ -1907,6 +1961,7 @@
     },
     {
       "id": "2동-2F-본교무실",
+      "sourceId": "room-18529a4d-dd0c-4843-9ddb-288cd5f71d96",
       "name": "본교무실",
       "building": "2동",
       "floor": 2,
@@ -1953,6 +2008,7 @@
     },
     {
       "id": "2동-2F-자료제작실",
+      "sourceId": "room-c40bce7e-d85a-4eea-916f-7f32f286082b",
       "name": "자료제작실",
       "building": "2동",
       "floor": 2,
@@ -1983,6 +2039,7 @@
     },
     {
       "id": "2동-2F-교감실",
+      "sourceId": "room-af501b46-0d05-4578-9100-eaa0c2d91122",
       "name": "교감실",
       "building": "2동",
       "floor": 2,
@@ -2013,6 +2070,7 @@
     },
     {
       "id": "2동-2F-교사용 화장실 (남)",
+      "sourceId": "room-b5ac1c6b-9588-4d66-92c2-ccf4e8ca6e70",
       "name": "교사용 화장실 (남)",
       "building": "2동",
       "floor": 2,
@@ -2043,6 +2101,7 @@
     },
     {
       "id": "2동-2F-교사용 화장실 (여)",
+      "sourceId": "room-a095e8d5-26db-4dff-87f5-70e36ba45896",
       "name": "교사용 화장실 (여)",
       "building": "2동",
       "floor": 2,
@@ -2073,6 +2132,7 @@
     },
     {
       "id": "2동-2F-계단실3",
+      "sourceId": "room-41ec7625-1c4b-468a-ad03-22a0cc5db212",
       "name": "계단실3",
       "building": "2동",
       "floor": 2,
@@ -2104,6 +2164,7 @@
     },
     {
       "id": "3동-2F-기술·가정실",
+      "sourceId": "room-e4fa87a0-9d58-4715-9912-6b0e53e766b6",
       "name": "기술·가정실",
       "building": "3동",
       "floor": 2,
@@ -2142,6 +2203,7 @@
     },
     {
       "id": "3동-2F-계단실1",
+      "sourceId": "room-a7f9d6bc-510f-4d7a-af65-1c7c136c02a2",
       "name": "계단실1",
       "building": "3동",
       "floor": 2,
@@ -2173,6 +2235,7 @@
     },
     {
       "id": "3동-2F-화장실 (여)",
+      "sourceId": "room-57c72fb9-bc2c-4e43-9e8a-77b9fcb905e1",
       "name": "화장실 (여)",
       "building": "3동",
       "floor": 2,
@@ -2203,6 +2266,7 @@
     },
     {
       "id": "3동-2F-대강의실",
+      "sourceId": "room-52233777-61ad-4652-9862-f85dc9bb5ab3",
       "name": "대강의실",
       "building": "3동",
       "floor": 2,
@@ -2233,6 +2297,7 @@
     },
     {
       "id": "3동-2F-화장실 (남)",
+      "sourceId": "room-6daac81e-ff72-48da-ab1b-d3ae6dd63940",
       "name": "화장실 (남)",
       "building": "3동",
       "floor": 2,
@@ -2263,6 +2328,7 @@
     },
     {
       "id": "3동-2F-여교사 휴게실",
+      "sourceId": "room-a2e03c1c-d452-467e-95f0-e7715d2576c2",
       "name": "여교사 휴게실",
       "building": "3동",
       "floor": 2,
@@ -2293,6 +2359,7 @@
     },
     {
       "id": "3동-2F-영어교과1실",
+      "sourceId": "room-3e2fcc86-0a97-482d-b54b-7991c2db98da",
       "name": "영어교과1실",
       "building": "3동",
       "floor": 2,
@@ -2323,6 +2390,7 @@
     },
     {
       "id": "3동-2F-영어교과2실",
+      "sourceId": "room-23de962f-e03b-4abe-aa79-1b8da2c09e4b",
       "name": "영어교과2실",
       "building": "3동",
       "floor": 2,
@@ -2353,6 +2421,7 @@
     },
     {
       "id": "3동-2F-영어교과3실",
+      "sourceId": "room-90b8943b-ee9a-4a83-a9f8-a61bae24d346",
       "name": "영어교과3실",
       "building": "3동",
       "floor": 2,
@@ -2383,6 +2452,7 @@
     },
     {
       "id": "3동-2F-학생안전교육부실",
+      "sourceId": "room-50cca0cd-054c-4213-a6d6-c5cd17e61135",
       "name": "학생안전교육부실",
       "building": "3동",
       "floor": 2,
@@ -2413,6 +2483,7 @@
     },
     {
       "id": "3동-2F-계단실2",
+      "sourceId": "room-7a25a188-8fba-4d12-b444-014d92c3a640",
       "name": "계단실2",
       "building": "3동",
       "floor": 2,
@@ -2444,6 +2515,7 @@
     },
     {
       "id": "1동-2F-꿈돋움 라운지 바 테이블",
+      "sourceId": "room-31c73e5a-f0a4-47b9-bf05-ea20431b302e",
       "name": "꿈돋움 라운지 바 테이블",
       "building": "1동",
       "floor": 2,
@@ -2474,6 +2546,7 @@
     },
     {
       "id": "1동-2F-121호 학습실",
+      "sourceId": "room-f513f7d4-dedd-42b5-aa95-91322707ea5a",
       "name": "121호 학습실",
       "building": "1동",
       "floor": 2,
@@ -2504,6 +2577,7 @@
     },
     {
       "id": "1동-2F-꿈돋움 라운지",
+      "sourceId": "room-fd0d5fe4-5356-4536-a05a-2b351f46c2f7",
       "name": "꿈돋움 라운지",
       "building": "1동",
       "floor": 2,
@@ -2538,6 +2612,7 @@
     },
     {
       "id": "1동-2F-꿈돋움 라운지-2",
+      "sourceId": "room-4f8e55ff-e745-48c7-b90f-07ffa46f2332",
       "name": "꿈돋움 라운지",
       "building": "1동",
       "floor": 2,
@@ -2568,6 +2643,7 @@
     },
     {
       "id": "1동-2F-122호 학습실",
+      "sourceId": "room-e3d15579-f47c-487d-9340-873b85e9f8e7",
       "name": "122호 학습실",
       "building": "1동",
       "floor": 2,
@@ -2598,6 +2674,7 @@
     },
     {
       "id": "1동-2F-123호 학습실",
+      "sourceId": "room-2e28dabb-3971-4372-a581-eb902128bbcb",
       "name": "123호 학습실",
       "building": "1동",
       "floor": 2,
@@ -2628,6 +2705,7 @@
     },
     {
       "id": "1동-2F-계단실8",
+      "sourceId": "room-a491ea93-1eb1-496c-892c-17199c0504ce",
       "name": "계단실8",
       "building": "1동",
       "floor": 2,
@@ -2663,6 +2741,7 @@
     },
     {
       "id": "2동-2F-창고",
+      "sourceId": "room-94602100-3714-4845-a7dc-9d067513f05a",
       "name": "창고",
       "building": "2동",
       "floor": 2,
@@ -2693,6 +2772,7 @@
     },
     {
       "id": "2동-2F-엘리베이터",
+      "sourceId": "room-357a1f0e-9603-457d-b6ce-6167776cb7a4",
       "name": "엘리베이터",
       "building": "2동",
       "floor": 2,
@@ -2724,6 +2804,7 @@
     },
     {
       "id": "4동-2F-계단실4",
+      "sourceId": "room-1bbc3020-040d-47c7-a1f2-2556f251ed3a",
       "name": "계단실4",
       "building": "4동",
       "floor": 2,
@@ -2755,6 +2836,7 @@
     },
     {
       "id": "4동-2F-계단실5",
+      "sourceId": "room-22e9bff2-56f0-42ae-b2f3-9f26fe33ed51",
       "name": "계단실5",
       "building": "4동",
       "floor": 2,
@@ -2786,6 +2868,7 @@
     },
     {
       "id": "4동-2F-423",
+      "sourceId": "room-74b6075e-127b-4b0f-a87d-6d54848ddea9",
       "name": "423",
       "building": "4동",
       "floor": 2,
@@ -2816,6 +2899,7 @@
     },
     {
       "id": "4동-2F-글로벌 라운지",
+      "sourceId": "room-712e3255-331c-4829-9632-4557d9548328",
       "name": "글로벌 라운지",
       "building": "4동",
       "floor": 2,
@@ -2846,6 +2930,7 @@
     },
     {
       "id": "4동-2F-화장실 (여)",
+      "sourceId": "room-46640ef7-5b25-4c33-a7ba-827b552ffa87",
       "name": "화장실 (여)",
       "building": "4동",
       "floor": 2,
@@ -2880,6 +2965,7 @@
     },
     {
       "id": "4동-2F-422",
+      "sourceId": "room-081e3d5b-1c88-40e3-bc31-6b186109e1ee",
       "name": "422",
       "building": "4동",
       "floor": 2,
@@ -2910,6 +2996,7 @@
     },
     {
       "id": "4동-2F-421",
+      "sourceId": "room-21716728-9edd-404b-aa63-bc42d4ee9b49",
       "name": "421",
       "building": "4동",
       "floor": 2,
@@ -2940,6 +3027,7 @@
     },
     {
       "id": "4동-2F-창고",
+      "sourceId": "room-fe316fcc-7b6b-4b34-b1e2-fe8297be7171",
       "name": "창고",
       "building": "4동",
       "floor": 2,
@@ -2970,6 +3058,7 @@
     },
     {
       "id": "4동-2F-시험지 보관실",
+      "sourceId": "room-469495da-c970-4ae0-992e-213340729da4",
       "name": "시험지 보관실",
       "building": "4동",
       "floor": 2,
@@ -3000,6 +3089,7 @@
     },
     {
       "id": "4동-2F-글로벌 라운지-2",
+      "sourceId": "room-5f6df07e-38c5-4877-8838-855582ec18ae",
       "name": "글로벌 라운지",
       "building": "4동",
       "floor": 2,
@@ -3030,6 +3120,7 @@
     },
     {
       "id": "2동-2F-2층 홀",
+      "sourceId": "room-2149c868-647f-4f5d-97e4-b004ed758aee",
       "name": "2층 홀",
       "building": "2동",
       "floor": 2,
@@ -3304,6 +3395,7 @@
     },
     {
       "id": "3동-3F-계단실1",
+      "sourceId": "room-cc46a8ca-f524-4874-b241-e0f1b4fe3a39",
       "name": "계단실1",
       "building": "3동",
       "floor": 3,
@@ -3335,6 +3427,7 @@
     },
     {
       "id": "3동-3F-3학년 교무실",
+      "sourceId": "room-05200170-9c87-4776-b553-293a20d99c29",
       "name": "3학년 교무실",
       "building": "3동",
       "floor": 3,
@@ -3373,6 +3466,7 @@
     },
     {
       "id": "3동-3F-3학년 사물함",
+      "sourceId": "room-eb37ba3e-36a1-40f1-9093-010f0be8b11a",
       "name": "3학년 사물함",
       "building": "3동",
       "floor": 3,
@@ -3403,6 +3497,7 @@
     },
     {
       "id": "3동-3F-3-1",
+      "sourceId": "room-4655ad7f-e909-445d-b5ab-738f8bd334da",
       "name": "3-1",
       "building": "3동",
       "floor": 3,
@@ -3433,6 +3528,7 @@
     },
     {
       "id": "3동-3F-3-2",
+      "sourceId": "room-db64b0a0-631c-4d1e-8817-6fb9bf3dfb5c",
       "name": "3-2",
       "building": "3동",
       "floor": 3,
@@ -3463,6 +3559,7 @@
     },
     {
       "id": "3동-3F-3-3",
+      "sourceId": "room-d9ce9300-8cd2-4234-8ace-96225f18193f",
       "name": "3-3",
       "building": "3동",
       "floor": 3,
@@ -3493,6 +3590,7 @@
     },
     {
       "id": "3동-3F-3-4",
+      "sourceId": "room-d132c2dd-d498-4530-a479-053798ef605d",
       "name": "3-4",
       "building": "3동",
       "floor": 3,
@@ -3523,6 +3621,7 @@
     },
     {
       "id": "3동-3F-계단실2",
+      "sourceId": "room-b75acbd7-ec38-4065-9ab8-dcdbf1db160d",
       "name": "계단실2",
       "building": "3동",
       "floor": 3,
@@ -3554,6 +3653,7 @@
     },
     {
       "id": "3동-3F-화장실 (여)",
+      "sourceId": "room-ecba0804-f1df-4994-9a9e-3bc7540dd356",
       "name": "화장실 (여)",
       "building": "3동",
       "floor": 3,
@@ -3584,6 +3684,7 @@
     },
     {
       "id": "3동-3F-하늬콜로키움",
+      "sourceId": "room-7e62a8d6-b14c-4fb9-9cc0-25114beb6d63",
       "name": "하늬콜로키움",
       "building": "3동",
       "floor": 3,
@@ -3614,6 +3715,7 @@
     },
     {
       "id": "1동-3F-2-7",
+      "sourceId": "room-3ee962e6-9e93-4f85-9212-b35a820dbc62",
       "name": "2-7",
       "building": "1동",
       "floor": 3,
@@ -3644,6 +3746,7 @@
     },
     {
       "id": "1동-3F-2-8",
+      "sourceId": "room-4ab10cb5-ccf9-4369-8122-e5ed316cb289",
       "name": "2-8",
       "building": "1동",
       "floor": 3,
@@ -3674,6 +3777,7 @@
     },
     {
       "id": "1동-3F-1-5",
+      "sourceId": "room-afb4e341-4465-4c80-967f-aefe56f67a77",
       "name": "1-5",
       "building": "1동",
       "floor": 3,
@@ -3704,6 +3808,7 @@
     },
     {
       "id": "1동-3F-2학년 교무실",
+      "sourceId": "room-d9e6448a-65c9-45cd-82f6-51b4f5843689",
       "name": "2학년 교무실",
       "building": "1동",
       "floor": 3,
@@ -3734,6 +3839,7 @@
     },
     {
       "id": "1동-3F-1-6",
+      "sourceId": "room-624fa6f3-c062-4d01-9073-a19ec7b48aad",
       "name": "1-6",
       "building": "1동",
       "floor": 3,
@@ -3764,6 +3870,7 @@
     },
     {
       "id": "1동-3F-1-7",
+      "sourceId": "room-0cc8e120-5106-4c70-91bf-515d4139185c",
       "name": "1-7",
       "building": "1동",
       "floor": 3,
@@ -3794,6 +3901,7 @@
     },
     {
       "id": "1동-3F-1-8",
+      "sourceId": "room-8031671d-df3d-465f-ac7e-63612c6fe06d",
       "name": "1-8",
       "building": "1동",
       "floor": 3,
@@ -3824,6 +3932,7 @@
     },
     {
       "id": "1동-3F-화장실 (여)",
+      "sourceId": "room-c8eec886-f7d7-47a3-ad50-befde4ea4bcf",
       "name": "화장실 (여)",
       "building": "1동",
       "floor": 3,
@@ -3854,6 +3963,7 @@
     },
     {
       "id": "1동-3F-계단실6",
+      "sourceId": "room-af88a264-1983-4f80-832a-09dfa07a3919",
       "name": "계단실6",
       "building": "1동",
       "floor": 3,
@@ -3885,6 +3995,7 @@
     },
     {
       "id": "1동-3F-계단실7",
+      "sourceId": "room-7d7d6878-2b69-49af-9288-ca51da177b7c",
       "name": "계단실7",
       "building": "1동",
       "floor": 3,
@@ -3916,6 +4027,7 @@
     },
     {
       "id": "1동-3F-화장실 (남)",
+      "sourceId": "room-a4032e3c-547b-4d09-8bf2-8234cc665042",
       "name": "화장실 (남)",
       "building": "1동",
       "floor": 3,
@@ -3946,6 +4058,7 @@
     },
     {
       "id": "3동-3F-화장실 (남)",
+      "sourceId": "room-ce2aa623-9837-437e-9467-2f551adcf5d9",
       "name": "화장실 (남)",
       "building": "3동",
       "floor": 3,
@@ -3976,6 +4089,7 @@
     },
     {
       "id": "1동-3F-131호 학습실",
+      "sourceId": "room-0a16d8d6-8e28-4b97-b63e-f61d73b5d8da",
       "name": "131호 학습실",
       "building": "1동",
       "floor": 3,
@@ -4006,6 +4120,7 @@
     },
     {
       "id": "1동-3F-132호 학습실",
+      "sourceId": "room-1acc4d2f-5838-4b12-94b1-4f1d8c1266e6",
       "name": "132호 학습실",
       "building": "1동",
       "floor": 3,
@@ -4036,6 +4151,7 @@
     },
     {
       "id": "1동-3F-133호 학습실",
+      "sourceId": "room-10ba70b8-b123-4502-9123-4528dfa2a256",
       "name": "133호 학습실",
       "building": "1동",
       "floor": 3,
@@ -4066,6 +4182,7 @@
     },
     {
       "id": "1동-3F-134호 학습실",
+      "sourceId": "room-8c6ff613-55c3-4fd3-803a-b81875f3ffb9",
       "name": "134호 학습실",
       "building": "1동",
       "floor": 3,
@@ -4096,6 +4213,7 @@
     },
     {
       "id": "1동-3F-꿈키움 라운지",
+      "sourceId": "room-04d1bc01-91ac-48bd-840a-27779dd56246",
       "name": "꿈키움 라운지",
       "building": "1동",
       "floor": 3,
@@ -4130,6 +4248,7 @@
     },
     {
       "id": "1동-3F-꿈키움 라운지-2",
+      "sourceId": "room-9f9339aa-8178-4b3a-a807-9e68fc2db1fd",
       "name": "꿈키움 라운지",
       "building": "1동",
       "floor": 3,
@@ -4160,6 +4279,7 @@
     },
     {
       "id": "3동-3F-3층 홀",
+      "sourceId": "room-fa5a5215-57dd-45e0-a9d0-6c43ae87ef41",
       "name": "3층 홀",
       "building": "3동",
       "floor": 3,
@@ -4210,6 +4330,7 @@
     },
     {
       "id": "3동-3F-꿈세움 라운지 바테이블",
+      "sourceId": "room-1d55fa76-81ce-4d9e-9961-439eb88ed89e",
       "name": "꿈세움 라운지 바테이블",
       "building": "3동",
       "floor": 3,
@@ -4240,6 +4361,7 @@
     },
     {
       "id": "3동-3F-331호 학습실",
+      "sourceId": "room-adddeb87-7ed8-4fe1-8b53-56bc9fa47fe7",
       "name": "331호 학습실",
       "building": "3동",
       "floor": 3,
@@ -4270,6 +4392,7 @@
     },
     {
       "id": "3동-3F-332호 학습실",
+      "sourceId": "room-932a5d77-afe2-4dbb-8074-330b8191ec7d",
       "name": "332호 학습실",
       "building": "3동",
       "floor": 3,
@@ -4300,6 +4423,7 @@
     },
     {
       "id": "2동-3F-계단실3",
+      "sourceId": "room-26707a96-d284-497e-89f5-3746a3876dee",
       "name": "계단실3",
       "building": "2동",
       "floor": 3,
@@ -4331,6 +4455,7 @@
     },
     {
       "id": "2동-3F-1-9",
+      "sourceId": "room-2095932a-c311-4d03-bbe7-15e7457efb42",
       "name": "1-9",
       "building": "2동",
       "floor": 3,
@@ -4361,6 +4486,7 @@
     },
     {
       "id": "2동-3F-2-9",
+      "sourceId": "room-f8117608-2f2d-464b-b42f-fec00b361777",
       "name": "2-9",
       "building": "2동",
       "floor": 3,
@@ -4391,6 +4517,7 @@
     },
     {
       "id": "2동-3F-3-9",
+      "sourceId": "room-01425dcc-423b-4c24-975c-7a0004d080f7",
       "name": "3-9",
       "building": "2동",
       "floor": 3,
@@ -4421,6 +4548,7 @@
     },
     {
       "id": "2동-3F-화장실 (여)",
+      "sourceId": "room-495fbc02-6377-4394-a788-4a81ca3dffab",
       "name": "화장실 (여)",
       "building": "2동",
       "floor": 3,
@@ -4451,6 +4579,7 @@
     },
     {
       "id": "2동-3F-화장실 (남)",
+      "sourceId": "room-1fa85382-03f4-4e29-8a29-0def43ee67dc",
       "name": "화장실 (남)",
       "building": "2동",
       "floor": 3,
@@ -4481,6 +4610,7 @@
     },
     {
       "id": "1동-3F-계단실8",
+      "sourceId": "room-8f0ce1e4-34e7-47a2-8a1d-631ab27c0208",
       "name": "계단실8",
       "building": "1동",
       "floor": 3,
@@ -4516,6 +4646,7 @@
     },
     {
       "id": "4동-3F-연극실 (431, 432)",
+      "sourceId": "room-b2fea448-3551-4c8d-8624-e40eba8314e7",
       "name": "연극실 (431, 432)",
       "building": "4동",
       "floor": 3,
@@ -4554,6 +4685,7 @@
     },
     {
       "id": "4동-3F-433",
+      "sourceId": "room-bae7a448-39c5-498c-8870-d343ed8f4805",
       "name": "433",
       "building": "4동",
       "floor": 3,
@@ -4584,6 +4716,7 @@
     },
     {
       "id": "4동-3F-432",
+      "sourceId": "room-798e4e67-61b8-47a3-a0cf-021e49a0749b",
       "name": "432",
       "building": "4동",
       "floor": 3,
@@ -4614,6 +4747,7 @@
     },
     {
       "id": "4동-3F-비주얼아트실 (435)",
+      "sourceId": "room-3be71820-4ada-4e31-a53e-ca6212557933",
       "name": "비주얼아트실 (435)",
       "building": "4동",
       "floor": 3,
@@ -4644,6 +4778,7 @@
     },
     {
       "id": "4동-3F-434",
+      "sourceId": "room-2099ac30-81fe-4b53-b023-73c8cb07028e",
       "name": "434",
       "building": "4동",
       "floor": 3,
@@ -4674,6 +4809,7 @@
     },
     {
       "id": "4동-3F-화장실 (남)",
+      "sourceId": "room-c01b8425-5cea-4820-b123-bdef036cbe43",
       "name": "화장실 (남)",
       "building": "4동",
       "floor": 3,
@@ -4712,6 +4848,7 @@
     },
     {
       "id": "4동-3F-계단실4",
+      "sourceId": "room-d5276738-ff58-486e-a8c7-7ee4c7fb21b7",
       "name": "계단실4",
       "building": "4동",
       "floor": 3,
@@ -4744,6 +4881,7 @@
     },
     {
       "id": "4동-3F-계단실5",
+      "sourceId": "room-5c38f3e7-7cf0-42af-bc78-b387707f584a",
       "name": "계단실5",
       "building": "4동",
       "floor": 3,
@@ -4776,6 +4914,7 @@
     },
     {
       "id": "2동-3F-3층 홀",
+      "sourceId": "room-e9f13903-1316-44bb-84c0-325b94593e04",
       "name": "3층 홀",
       "building": "2동",
       "floor": 3,
@@ -4930,6 +5069,7 @@
     },
     {
       "id": "2동-3F-엘리베이터",
+      "sourceId": "room-2d2ae4e0-8c5a-4943-a879-89cfaab5f246",
       "name": "엘리베이터",
       "building": "2동",
       "floor": 3,
@@ -4961,6 +5101,7 @@
     },
     {
       "id": "2동-3F-창고",
+      "sourceId": "room-3324875a-378d-4f87-a3a1-c93e30b5874a",
       "name": "창고",
       "building": "2동",
       "floor": 3,
@@ -4991,6 +5132,7 @@
     },
     {
       "id": "3동-4F-계단실1",
+      "sourceId": "room-9529711c-d6fe-4ad0-9449-bf31335514f8",
       "name": "계단실1",
       "building": "3동",
       "floor": 4,
@@ -5022,6 +5164,7 @@
     },
     {
       "id": "3동-4F-심자실",
+      "sourceId": "room-44b735c0-a870-46a8-8786-1505519eb7ca",
       "name": "심자실",
       "building": "3동",
       "floor": 4,
@@ -5060,6 +5203,7 @@
     },
     {
       "id": "3동-4F-3학년 사물함",
+      "sourceId": "room-6e32ac91-1546-4903-9820-ad27d800c2a2",
       "name": "3학년 사물함",
       "building": "3동",
       "floor": 4,
@@ -5090,6 +5234,7 @@
     },
     {
       "id": "3동-4F-3-5",
+      "sourceId": "room-4d2f8c62-cd0c-414f-8edd-98208b8eec37",
       "name": "3-5",
       "building": "3동",
       "floor": 4,
@@ -5120,6 +5265,7 @@
     },
     {
       "id": "3동-4F-3-6",
+      "sourceId": "room-02e86e7b-8a41-404d-afc1-2a6cab12ccb2",
       "name": "3-6",
       "building": "3동",
       "floor": 4,
@@ -5150,6 +5296,7 @@
     },
     {
       "id": "3동-4F-3-7",
+      "sourceId": "room-1931f9f6-82e4-4fac-9d5a-e6aece3e04ac",
       "name": "3-7",
       "building": "3동",
       "floor": 4,
@@ -5180,6 +5327,7 @@
     },
     {
       "id": "3동-4F-3-8",
+      "sourceId": "room-c41164de-8c8e-446c-a58d-611c065f7937",
       "name": "3-8",
       "building": "3동",
       "floor": 4,
@@ -5210,6 +5358,7 @@
     },
     {
       "id": "3동-4F-화장실 (여)",
+      "sourceId": "room-b4f4e87d-cc66-485e-9b17-382276d17c57",
       "name": "화장실 (여)",
       "building": "3동",
       "floor": 4,
@@ -5240,6 +5389,7 @@
     },
     {
       "id": "1동-4F-2-5",
+      "sourceId": "room-10dcfac9-b911-437b-855d-f5b6bcd53715",
       "name": "2-5",
       "building": "1동",
       "floor": 4,
@@ -5270,6 +5420,7 @@
     },
     {
       "id": "1동-4F-2-4",
+      "sourceId": "room-44a9b939-7959-4c15-a5a2-045f4ddad6ed",
       "name": "2-4",
       "building": "1동",
       "floor": 4,
@@ -5300,6 +5451,7 @@
     },
     {
       "id": "1동-4F-2-3",
+      "sourceId": "room-44de256a-83c2-4c15-b126-db7e7d0936da",
       "name": "2-3",
       "building": "1동",
       "floor": 4,
@@ -5330,6 +5482,7 @@
     },
     {
       "id": "1동-4F-2-2",
+      "sourceId": "room-271869a3-b19e-400f-b359-bc86f381845f",
       "name": "2-2",
       "building": "1동",
       "floor": 4,
@@ -5360,6 +5513,7 @@
     },
     {
       "id": "1동-4F-2-1",
+      "sourceId": "room-3207e842-c982-4ab0-b127-80e9fb635d5a",
       "name": "2-1",
       "building": "1동",
       "floor": 4,
@@ -5390,6 +5544,7 @@
     },
     {
       "id": "1동-4F-화장실 (여)",
+      "sourceId": "room-042364b4-3fba-4173-912b-dfa1d2c1d474",
       "name": "화장실 (여)",
       "building": "1동",
       "floor": 4,
@@ -5420,6 +5575,7 @@
     },
     {
       "id": "1동-4F-계단실6",
+      "sourceId": "room-d4382ea4-a246-4858-9824-bc2096ddef5a",
       "name": "계단실6",
       "building": "1동",
       "floor": 4,
@@ -5451,6 +5607,7 @@
     },
     {
       "id": "1동-4F-계단실7",
+      "sourceId": "room-8ca0e3f6-68ee-44da-a4fe-8db4962e8701",
       "name": "계단실7",
       "building": "1동",
       "floor": 4,
@@ -5482,6 +5639,7 @@
     },
     {
       "id": "1동-4F-화장실 (남)",
+      "sourceId": "room-e72464b6-d9c1-4fa0-8ff6-fdacedb61068",
       "name": "화장실 (남)",
       "building": "1동",
       "floor": 4,
@@ -5512,6 +5670,7 @@
     },
     {
       "id": "3동-4F-화장실 (남)",
+      "sourceId": "room-b85743a6-360d-4faf-ad2e-1f57bddfa299",
       "name": "화장실 (남)",
       "building": "3동",
       "floor": 4,
@@ -5542,6 +5701,7 @@
     },
     {
       "id": "1동-4F-큰들마 콜로키움",
+      "sourceId": "room-bd0c1e5b-57f5-40af-9d22-dc1dc403be49",
       "name": "큰들마 콜로키움",
       "building": "1동",
       "floor": 4,
@@ -5572,6 +5732,7 @@
     },
     {
       "id": "1동-4F-2-6",
+      "sourceId": "room-e77d30a3-ab1a-4088-86fd-6e5c736ce668",
       "name": "2-6",
       "building": "1동",
       "floor": 4,
@@ -5602,6 +5763,7 @@
     },
     {
       "id": "1동-4F-계단실8",
+      "sourceId": "room-e16abbf6-054b-40c6-a9e0-363f4f043709",
       "name": "계단실8",
       "building": "1동",
       "floor": 4,
@@ -5641,6 +5803,7 @@
     },
     {
       "id": "2동-4F-창고",
+      "sourceId": "room-c745a6b0-a887-4e02-a269-0dacef82cddf",
       "name": "창고",
       "building": "2동",
       "floor": 4,
@@ -5671,6 +5834,7 @@
     },
     {
       "id": "2동-4F-엘리베이터",
+      "sourceId": "room-966b694a-4d72-422c-af13-d34854c5a811",
       "name": "엘리베이터",
       "building": "2동",
       "floor": 4,
@@ -5702,6 +5866,7 @@
     },
     {
       "id": "3동-4F-342호 학습실",
+      "sourceId": "room-29383767-4a16-484c-a915-bb1d00a3e7a8",
       "name": "342호 학습실",
       "building": "3동",
       "floor": 4,
@@ -5732,6 +5897,7 @@
     },
     {
       "id": "3동-4F-341호 학습실",
+      "sourceId": "room-c7a6ee3b-43d0-4255-b2e0-f257258b96ef",
       "name": "341호 학습실",
       "building": "3동",
       "floor": 4,
@@ -5762,6 +5928,7 @@
     },
     {
       "id": "3동-4F-꿈세움 라운지 바테이블",
+      "sourceId": "room-57401ef4-06e6-456a-9df3-993f67474b94",
       "name": "꿈세움 라운지 바테이블",
       "building": "3동",
       "floor": 4,
@@ -5792,6 +5959,7 @@
     },
     {
       "id": "3동-4F-344호 학습실",
+      "sourceId": "room-a3ea69e5-e10f-46cb-a729-e6bd79bcf768",
       "name": "344호 학습실",
       "building": "3동",
       "floor": 4,
@@ -5822,6 +5990,7 @@
     },
     {
       "id": "3동-4F-343호 학습실",
+      "sourceId": "room-b7c4f910-bc11-418c-9be1-fbcf8390672b",
       "name": "343호 학습실",
       "building": "3동",
       "floor": 4,
@@ -5852,6 +6021,7 @@
     },
     {
       "id": "3동-4F-계단실2",
+      "sourceId": "room-cd56144f-24ad-4c94-b30b-86ac71c247a2",
       "name": "계단실2",
       "building": "3동",
       "floor": 4,
@@ -5883,6 +6053,7 @@
     },
     {
       "id": "3동-4F-3동 4층 홀",
+      "sourceId": "room-845123e1-729f-48f7-a0c5-b2328300c31a",
       "name": "3동 4층 홀",
       "building": "3동",
       "floor": 4,
@@ -5949,6 +6120,7 @@
     },
     {
       "id": "2동-4F-계단실3",
+      "sourceId": "room-7f07b14f-b1a0-4174-90d6-a8a045965170",
       "name": "계단실3",
       "building": "2동",
       "floor": 4,
@@ -5980,6 +6152,7 @@
     },
     {
       "id": "2동-4F-화장실 (남)",
+      "sourceId": "room-f0f33da3-91c6-4824-864d-4f3012a56004",
       "name": "화장실 (남)",
       "building": "2동",
       "floor": 4,
@@ -6010,6 +6183,7 @@
     },
     {
       "id": "2동-4F-화장실 (여)",
+      "sourceId": "room-0daceb86-91fa-4c68-a36c-83ed20e78393",
       "name": "화장실 (여)",
       "building": "2동",
       "floor": 4,
@@ -6040,6 +6214,7 @@
     },
     {
       "id": "2동-4F-수학교과1실",
+      "sourceId": "room-e6f0f6b1-1ecf-4bd2-ae93-c015ed63dd5d",
       "name": "수학교과1실",
       "building": "2동",
       "floor": 4,
@@ -6070,6 +6245,7 @@
     },
     {
       "id": "2동-4F-수학교과2실",
+      "sourceId": "room-b994af64-4ebd-423f-ae60-cc391ccfc1f3",
       "name": "수학교과2실",
       "building": "2동",
       "floor": 4,
@@ -6100,6 +6276,7 @@
     },
     {
       "id": "2동-4F-수학교과3실",
+      "sourceId": "room-954a894a-08fd-42c5-9041-469213d8cf7e",
       "name": "수학교과3실",
       "building": "2동",
       "floor": 4,
@@ -6130,6 +6307,7 @@
     },
     {
       "id": "1동-4F-4층 홀",
+      "sourceId": "room-92ab02b3-2450-4c91-937f-0af201d5d64f",
       "name": "4층 홀",
       "building": "1동",
       "floor": 4,
