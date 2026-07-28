@@ -12,6 +12,7 @@ import {
 } from "./materials.js";
 import { createBackdrop, createGround, createReflection } from "./environment.js";
 import { createComposer, BLOOM } from "./postfx.js";
+import { isReservable, openReservation } from "./reservation.js";
 
 // index.html 의 가드에게 "모듈이 실제로 실행됐다" 고 알린다.
 window.__appBooted = true;
@@ -530,6 +531,12 @@ const panelName = document.getElementById("panel-name");
 const panelBuilding = document.getElementById("panel-building");
 const panelType = document.getElementById("panel-type");
 const panelParts = document.getElementById("panel-parts");
+const panelBook = document.getElementById("panel-book");
+
+// 예약창은 지금 패널에 떠 있는 방을 그대로 받는다
+panelBook.addEventListener("click", () => {
+  if (selected.length) openReservation(selected[0].userData.room);
+});
 
 /** 묶음의 동 표기. 여러 동에 걸친 홀은 어느 한 동으로 적을 수 없다. */
 function buildingLabel(meshes) {
@@ -556,6 +563,8 @@ function openPanel(meshes) {
     "--accent",
     "#" + (PALETTE[room.building] ?? new THREE.Color(0x22d3ee)).getHexString()
   );
+  // 예약을 받는 방에만 버튼이 뜬다 (rooms.json 의 reservable, 원천은 plan.config.json)
+  panelBook.hidden = !isReservable(room);
   panel.hidden = false;
 }
 

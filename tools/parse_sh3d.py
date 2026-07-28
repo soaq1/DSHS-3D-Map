@@ -212,6 +212,33 @@ def is_shaft(name, cfg):
     return any(w in name for w in (cfg.get("shaftWords") or []))
 
 
+def check_reservable(rooms, cfg):
+    """예약 설정이 실제 도면과 맞는지 본다.
+
+    설정은 UUID 로 방을 가리키고 이름은 사람이 읽으라고 적어둔 것이다. 둘이
+    어긋났다는 건 방을 다시 그려 UUID 가 바뀌었다는 뜻이고, 그러면 그 방은
+    예약 화면에서 조용히 사라진다. 조용히 사라지는 게 제일 나쁘므로 알린다.
+    """
+    want = cfg.get("reservable") or {}
+    if not want:
+        return
+
+    by_source = {r.get("sourceId"): r for r in rooms}
+    for sid, meta in want.items():
+        room = by_source.get(sid)
+        if room is None:
+            warn("예약 설정의 방을 도면에서 찾지 못했습니다 -> '%s' (%s). "
+                 "방을 지우고 다시 그리면 UUID 가 바뀝니다."
+                 % (meta.get("name", "?"), sid))
+        elif meta.get("name") and meta["name"] != room["name"]:
+            warn("예약 설정의 이름이 도면과 다릅니다 -> 설정 '%s' / 도면 '%s'. "
+                 "설정의 name 을 고쳐두면 나중에 알아보기 좋습니다."
+                 % (meta["name"], room["name"]))
+
+    n = sum(1 for r in rooms if r.get("reservable"))
+    print("예약 가능한 방: %d개" % n)
+
+
 def apply_roof_shafts(rooms, cfg):
     """어떤 층에 어떤 동의 방이 계단실뿐이면, 그 동에는 그 층이 없는 것이다.
 
@@ -445,9 +472,12 @@ def main():
             # 참인 방에만 넣는다. 대부분의 방에 false 를 달면 json 만 커진다.
             if is_shaft(name, cfg):
                 record["shaft"] = True
+            if rid in (cfg.get("reservable") or {}):
+                record["reservable"] = True
             rooms.append(record)
 
     rooms = apply_roof_shafts(rooms, cfg)
+    check_reservable(rooms, cfg)
 
     bxs = [p[0] for r in rooms for p in r["polygon"]]
     bzs = [p[1] for r in rooms for p in r["polygon"]]
