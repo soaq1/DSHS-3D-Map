@@ -131,7 +131,32 @@ data/
 tools/
   parse_sh3d.py       도면 파서
   plan.config.json    층 · 동 · 종류 · 검증 기댓값 설정
+font/
+  Paperlogy-5/7/9     본문 / 방 이름 / 제목
 ```
+
+### 글꼴
+
+페이퍼로지 한 가족을 굵기 셋으로 등록해 두고 `font-weight` 로 고른다.
+파일을 직접 지정하지 않으므로 규칙이 단순하다.
+
+| 굵기 | 파일 | 쓰는 곳 |
+|---|---|---|
+| 900 | Paperlogy-9Black | 제목 (`서부고 배치도`) |
+| 700 | Paperlogy-7Bold | 방 이름 — 배치도 안 이름표, 패널의 방 이름 |
+| 500 | Paperlogy-5Medium | 그 밖의 본문 전부 |
+
+`@font-face` 는 `src/style.css` 맨 위에 있고 경로는 그 파일 기준이다. Vite 가
+`dist/assets` 로 옮기고 해시를 붙이므로 하위 경로 배포에서도 깨지지 않는다.
+
+주의할 점 둘:
+
+- **폼 요소는 `font-weight` 를 안 물려받는다.** `<input>`·`<button>` 은 UA 기본값이
+  400 이라 `font-family: inherit` 만으로는 굵기가 틀어진다. `font-weight: inherit` 을
+  같이 줘야 한다.
+- **`font-display: swap`** — 셋 합쳐 2MB 라 다 받기 전에는 글자가 아예 안 보인다.
+  먼저 시스템 폰트로 그려두고 도착하면 바꿔 끼운다. 용량이 부담되면 woff2 로 바꾸면
+  60~70% 줄어든다 (`fontTools` + `brotli` 필요).
 
 ## 렌더링 메모
 

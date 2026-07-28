@@ -1,3 +1,32 @@
+/* 페이퍼로지 — 한 가족을 굵기 셋으로 나눠 등록한다. 파일을 직접 고르지 않고
+   font-weight 로 고르게 하는 편이 규칙이 단순하다.
+     900 (9 Black)  제목
+     700 (7 Bold)   방 이름 (배치도 안 이름표 + 패널의 방 이름)
+     500 (5 Medium) 그 밖의 본문
+   경로는 이 파일 기준이다. Vite 가 알아서 dist/assets 로 옮기고 해시를 붙인다.
+   swap 을 주는 이유: 세 벌 합쳐 2MB 라 다 받기 전에는 글자가 아예 안 보인다.
+   먼저 시스템 폰트로 그려두고 도착하면 바꿔 끼운다. */
+@font-face {
+  font-family: "Paperlogy";
+  src: url("../font/Paperlogy-5Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Paperlogy";
+  src: url("../font/Paperlogy-7Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Paperlogy";
+  src: url("../font/Paperlogy-9Black.ttf") format("truetype");
+  font-weight: 900;
+  font-display: swap;
+}
+
 :root {
   --bg: #050b14;
   --cyan: #22d3ee;
@@ -15,7 +44,8 @@ body {
   overflow: hidden;
   background: var(--bg);
   color: var(--ink);
-  font-family: "Malgun Gothic", "맑은 고딕", system-ui, sans-serif;
+  font-family: "Paperlogy", "Malgun Gothic", "맑은 고딕", system-ui, sans-serif;
+  font-weight: 500; /* 본문 기본은 페이퍼로지 5 */
 }
 
 #scene {
@@ -78,7 +108,7 @@ body {
 
 #hud-title {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 900; /* 제목 — 페이퍼로지 9 */
   letter-spacing: 0.22em;
   color: var(--cyan);
   text-shadow: 0 0 16px rgba(34, 211, 238, 0.55);
@@ -120,6 +150,7 @@ body {
   width: 100%;
   padding: 9px 28px 9px 12px;
   font-family: inherit;
+  font-weight: inherit; /* 폼 요소는 굵기를 안 물려받는다 (UA 기본 400) */
   font-size: 12px;
   color: var(--ink);
   background: rgba(6, 14, 26, 0.72);
@@ -183,6 +214,7 @@ body {
   width: 100%;
   padding: 7px 11px;
   font-family: inherit;
+  font-weight: inherit; /* 폼 요소는 굵기를 안 물려받는다 (UA 기본 400) */
   font-size: 12px;
   text-align: left;
   color: var(--ink);
@@ -228,6 +260,7 @@ body {
   gap: 5px;
   padding: 4px 9px;
   font-family: inherit;
+  font-weight: inherit; /* 폼 요소는 굵기를 안 물려받는다 (UA 기본 400) */
   font-size: 10px;
   letter-spacing: 0.02em;
   color: rgba(219, 234, 254, 0.55);
@@ -299,8 +332,8 @@ body {
   width: 44px;
   height: 36px;
   font-family: inherit;
+  font-weight: inherit; /* 폼 요소는 굵기를 안 물려받는다 (UA 기본 400) */
   font-size: 12px;
-  font-weight: 700;
   letter-spacing: 0.04em;
   color: rgba(219, 234, 254, 0.5);
   background: rgba(6, 14, 26, 0.6);
@@ -390,6 +423,7 @@ body {
 
 #panel-name {
   font-size: 23px;
+  /* 이것도 방 이름이라 배치도 안 이름표와 같은 굵기(7)로 맞춘다 */
   font-weight: 700;
   letter-spacing: -0.01em;
   color: #ffffff;
