@@ -136,7 +136,7 @@ function build() {
       <label class="resv-row">
         <span>이메일</span>
         <input id="resv-contact" type="email" required maxlength="60"
-               placeholder="승인 결과를 받을 주소" />
+               placeholder="승인 결과를 받을 이메일 주소" />
       </label>
       <label class="resv-row">
         <span>사유</span>

@@ -664,9 +664,9 @@ body {
   color: rgba(219, 234, 254, 0.42);
 }
 
-.resv-row input[type="text"],
-.resv-row input[type="date"],
-.resv-row input[type="time"] {
+/* 타입을 하나씩 적으면 새 타입을 쓸 때마다 빠뜨린다. 실제로 연락처를
+   type="email" 로 바꿨을 때 이 목록에 없어서 브라우저 기본 모양이 나왔다. */
+.resv-row input {
   flex: 1;
   min-width: 0;
   height: 38px;

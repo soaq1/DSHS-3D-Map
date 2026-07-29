@@ -16,7 +16,15 @@ export const BLOOM = {
  * 블룸 파이프라인. 이게 홀로그램 느낌의 절반이다 —
  * 네온 윤곽선이 번져야 "빛나는" 것처럼 보인다.
  */
-export function createComposer(renderer, scene, camera) {
+/** 약한 기기에서 후처리 비용을 줄이는 값들.
+ *  블룸은 화면 전체를 여러 번 흐리게 그리므로 해상도에 비례해 비싸진다.
+ *  절반 해상도로 흐리면 비용이 1/4 이 되는데, 어차피 흐린 그림이라 티가 잘 안 난다. */
+export const QUALITY = {
+  full: { bloomScale: 1, samples: 4 },
+  low: { bloomScale: 0.5, samples: 2 },
+};
+
+export function createComposer(renderer, scene, camera, q = QUALITY.full) {
   const w = window.innerWidth;
   const h = window.innerHeight;
 
@@ -24,7 +32,7 @@ export function createComposer(renderer, scene, camera) {
   // 컴포저의 렌더타깃에는 걸리지 않는다. 직접 만들어 넘겨야 계단현상이 안 생긴다.
   // HalfFloat 은 블룸 계조가 뭉개지는 걸 막는다.
   const target = new THREE.WebGLRenderTarget(w, h, {
-    samples: 4,
+    samples: q.samples,
     type: THREE.HalfFloatType,
   });
 
@@ -34,7 +42,7 @@ export function createComposer(renderer, scene, camera) {
   composer.addPass(new RenderPass(scene, camera));
 
   const bloom = new UnrealBloomPass(
-    new THREE.Vector2(w, h),
+    new THREE.Vector2(w * q.bloomScale, h * q.bloomScale),
     BLOOM.strength,
     BLOOM.radius,
     BLOOM.threshold
@@ -45,5 +53,5 @@ export function createComposer(renderer, scene, camera) {
   // 빠뜨리면 화면 전체가 뜨거나 어둡게 나온다.
   composer.addPass(new OutputPass());
 
-  return { composer, bloom };
+  return { composer, bloom, bloomScale: q.bloomScale };
 }

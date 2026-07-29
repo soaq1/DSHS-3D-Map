@@ -11,7 +11,7 @@ import {
   createEdges,
 } from "./materials.js";
 import { createBackdrop, createGround, createReflection } from "./environment.js";
-import { createComposer, BLOOM } from "./postfx.js";
+import { createComposer, BLOOM, QUALITY } from "./postfx.js";
 import {
   isReservable,
   openReservation,
@@ -66,7 +66,15 @@ try {
   );
   throw err;
 }
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+/** 약한 기기인가. 폰이거나 코어가 적으면 낮춘다.
+ *  이 그림은 삼각형이 6천 개뿐이라 형상은 안 무겁고, 비용은 전부 '반투명한 면을
+ *  몇 번 겹쳐 칠하느냐'(오버드로)와 블룸에서 나온다. 둘 다 화면 픽셀 수에
+ *  정비례하므로 해상도를 낮추는 게 가장 확실한 처방이다. */
+const LOW_END =
+  window.matchMedia("(max-width: 720px), (pointer: coarse)").matches ||
+  (navigator.hardwareConcurrency || 8) <= 4;
+
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, LOW_END ? 1.25 : 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 // 톤매핑이 있어야 겹친 면들이 만든 1.0 초과 값이 흰색으로 딱 잘리지 않고
 // 부드럽게 눌린다. 끄면 방이 겹쳐 보이는 곳마다 눈이 아플 만큼 타버린다.
@@ -95,6 +103,23 @@ controls.screenSpacePanning = true;
 // FrontSide 라 거의 안 보여서 화면이 망가진 것처럼 느껴진다.
 controls.minPolarAngle = 0;
 controls.maxPolarAngle = Math.PI / 2 - 0.02;
+
+// 바뀐 게 없으면 그리지 않는다.
+//
+// 예전에는 아무 일이 없어도 초당 180번씩 다시 그렸다. 이 그림은 반투명한 면
+// 445개를 겹쳐 칠하고 블룸까지 돌리므로 한 장이 싸지 않은데, 가만히 보고만 있어도
+// 그 값을 계속 치르고 있었다. 폰에서는 그게 곧 발열과 배터리이고, 발열이 오면
+// 기기가 스스로 속도를 낮춰(스로틀링) 정작 움직일 때 더 끊긴다.
+//
+// 지금은 카메라·애니메이션·필터·선택이 바뀔 때만 그린다. 가만히 두면 0장이다.
+let renderPending = true;
+const requestRender = () => {
+  renderPending = true;
+};
+
+// 사용자가 궤도를 돌리거나 줌하면 컨트롤이 알려준다
+controls.addEventListener("change", requestRender);
+
 
 // ---------------------------------------------------------------- 방 생성
 const roomGroup = new THREE.Group();
@@ -531,6 +556,8 @@ function applyFilters() {
   // 묶음은 일부만 가려질 수 있으므로, 하나라도 보이면 선택을 유지한다.
   if (selected.length && !selected.some((m) => m.visible)) setSelected(null);
   if (hovered.length && !hovered.some((m) => m.visible)) setHovered(null);
+
+  requestRender();
 }
 
 // ---------------------------------------------------------------- 카메라 배치
@@ -632,7 +659,12 @@ const reflection = createReflection(baseFloorMeshes);
 scene.add(reflection);
 
 // ---------------------------------------------------------------- 후처리
-const { composer, bloom } = createComposer(renderer, scene, camera);
+const { composer, bloom, bloomScale } = createComposer(
+  renderer,
+  scene,
+  camera,
+  LOW_END ? QUALITY.low : QUALITY.full
+);
 
 // ---------------------------------------------------------------- 상호작용
 const raycaster = new THREE.Raycaster();
@@ -732,6 +764,8 @@ function setSelected(meshes) {
 
   if (selected.length) openPanel(selected);
   else closePanel();
+
+  requestRender();
 }
 
 document.getElementById("panel-close").addEventListener("click", () => setSelected(null));
@@ -953,6 +987,7 @@ function setHovered(meshes) {
   }
 
   canvas.style.cursor = hovered.length ? "pointer" : "default";
+  requestRender();
 }
 
 /** 마우스 아래의 방을 찾는다. circulation 은 pickables 에 없으므로 자동 제외.
@@ -1138,7 +1173,7 @@ document.addEventListener("pointerdown", (e) => {
 window.addEventListener("resize", () => {
   const w = window.innerWidth;
   const h = window.innerHeight;
-  const dpr = Math.min(window.devicePixelRatio, 2);
+  const dpr = Math.min(window.devicePixelRatio, LOW_END ? 1.25 : 2);
 
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
@@ -1148,10 +1183,13 @@ window.addEventListener("resize", () => {
 
   composer.setPixelRatio(dpr);
   composer.setSize(w, h);
-  bloom.setSize(w, h);
+  // 블룸은 낮은 해상도로 흐린다. 여기서 배율을 안 곱하면 리사이즈 한 번에
+  // 원래 해상도로 돌아가 버린다.
+  bloom.setSize(w * bloomScale, h * bloomScale);
 
   // 이걸 빠뜨리면 창 크기를 바꾼 뒤 선 두께가 틀어진다
   for (const m of lineMaterials) m.resolution.set(w, h);
+  requestRender();
 });
 
 // ---------------------------------------------------------------- 루프
@@ -1166,8 +1204,12 @@ function animate() {
   const dt = Math.min((now - lastT) / 1000, 0.1); // 탭 복귀 시 큰 점프 방지
   lastT = now;
 
+  // 진행 중인 애니메이션이 있으면 계속 그려야 한다
+  let animating = false;
+
   // 인트로: 매스가 아래에서 올라오며 페이드인
   if (revealT < 1) {
+    animating = true;
     revealT = Math.min(1, revealT + dt / REVEAL_SECONDS);
     const e = 1 - Math.pow(1 - revealT, 3); // easeOutCubic
     roomGroup.position.y = (1 - e) * -TOP_Y * 2.5;
@@ -1178,6 +1220,7 @@ function animate() {
 
   // 카메라 비행. 사용자가 직접 궤도를 돌리면 즉시 양보한다.
   if (flight) {
+    animating = true;
     flight.t = Math.min(1, flight.t + dt / flight.dur);
     const e = easeInOut(flight.t);
     controls.target.lerpVectors(flight.fromTarget, flight.toTarget, e);
@@ -1185,7 +1228,13 @@ function animate() {
     if (flight.t >= 1) flight = null;
   }
 
-  controls.update();
+  // 감쇠가 남아 있으면 update() 가 true 를 준다. 손을 떼도 부드럽게 멈추도록
+  // 이 호출 자체는 매 프레임 해야 한다 — 비싼 건 그리기지 이 계산이 아니다.
+  const moving = controls.update();
+
+  if (!renderPending && !moving && !animating) return;
+  renderPending = false;
+
   composer.render();
 
   // 렌더 뒤에 부른다. 카메라·오브젝트 행렬이 최신이라 따로 갱신할 필요가 없다.
