@@ -472,8 +472,12 @@ def main():
             # 참인 방에만 넣는다. 대부분의 방에 false 를 달면 json 만 커진다.
             if is_shaft(name, cfg):
                 record["shaft"] = True
-            if rid in (cfg.get("reservable") or {}):
+            resv = (cfg.get("reservable") or {}).get(rid)
+            if resv is not None:
                 record["reservable"] = True
+                # 이용 규칙. 예약 창이 신청 전에 보여준다.
+                if resv.get("note"):
+                    record["note"] = resv["note"]
             rooms.append(record)
 
     rooms = apply_roof_shafts(rooms, cfg)

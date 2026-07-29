@@ -50,6 +50,16 @@ async function post(payload) {
   return data;
 }
 
+async function getDay(date) {
+  const res = await fetch(
+    RESERVATION_ENDPOINT + "?action=day&date=" + encodeURIComponent(date)
+  );
+  if (!res.ok) throw new Error("서버 응답 " + res.status);
+  const data = await res.json();
+  if (!data.ok) throw new Error(data.error || "알 수 없는 오류");
+  return data.rooms ?? {};
+}
+
 async function getSlots(sourceId, date) {
   const url =
     RESERVATION_ENDPOINT +
@@ -90,6 +100,8 @@ function build() {
         <code>src/config.js</code> 의 <code>RESERVATION_ENDPOINT</code> 를 채우면
         신청할 수 있습니다.
       </p>
+
+      <p id="resv-note" hidden></p>
 
       <label class="resv-row">
         <span>날짜</span>
@@ -149,6 +161,7 @@ function build() {
     where: $("resv-where"),
     room: $("resv-room"),
     offline: $("resv-offline"),
+    note: $("resv-note"),
     date: $("resv-date"),
     mode: $("resv-mode"),
     periods: $("resv-periods"),
@@ -367,6 +380,104 @@ async function submit() {
   }
 }
 
+// ------------------------------------------------------------- 예약 현황 보기
+// 방을 하나씩 열어야 예약이 보이면 "오늘 어디가 비었나" 를 알 수 없다.
+// 그 날 전체를 한 화면에 펼친다. 서버는 이미 action=day 로 다 준다.
+let statusDlg = null;
+let statusEls = null;
+
+function buildStatus() {
+  statusDlg = document.createElement("dialog");
+  statusDlg.id = "resv-status";
+  statusDlg.innerHTML = `
+    <header>
+      <div>
+        <p class="resv-where">예약 현황</p>
+        <h2>승인된 예약</h2>
+      </div>
+      <button type="button" class="resv-x" aria-label="닫기">&times;</button>
+    </header>
+    <label class="resv-row">
+      <span>날짜</span>
+      <input id="resv-status-date" type="date" />
+    </label>
+    <div id="resv-status-list"></div>
+  `;
+  document.body.appendChild(statusDlg);
+  statusEls = {
+    date: statusDlg.querySelector("#resv-status-date"),
+    list: statusDlg.querySelector("#resv-status-list"),
+  };
+  statusDlg.querySelector(".resv-x").addEventListener("click", () =>
+    statusDlg.close()
+  );
+  statusEls.date.addEventListener("change", loadStatus);
+}
+
+async function loadStatus() {
+  const date = statusEls.date.value;
+  statusEls.list.textContent = "";
+  if (!connected) {
+    statusEls.list.innerHTML =
+      '<p class="resv-none">아직 예약 서버에 연결되지 않았습니다.</p>';
+    return;
+  }
+  statusEls.list.innerHTML = '<p class="resv-none">불러오는 중…</p>';
+
+  let rooms;
+  try {
+    rooms = await getDay(date);
+  } catch (err) {
+    statusEls.list.innerHTML =
+      '<p class="resv-none">불러오지 못했습니다 — ' + err.message + "</p>";
+    return;
+  }
+
+  // 방 하나가 여러 건일 수 있으므로 펼쳐서 시간순으로 늘어놓는다
+  const items = [];
+  for (const [sourceId, list] of Object.entries(rooms)) {
+    for (const it of list) items.push({ sourceId, ...it });
+  }
+  items.sort((a, b) => a.start.localeCompare(b.start));
+
+  if (!items.length) {
+    statusEls.list.innerHTML =
+      '<p class="resv-none">이 날은 승인된 예약이 없습니다.</p>';
+    return;
+  }
+
+  statusEls.list.textContent = "";
+  for (const it of items) {
+    // 방 이름은 서버가 보내준 것을 먼저 쓴다. 도면에서 방을 다시 그려
+    // sourceId 가 바뀌어도 사람이 어느 방인지는 알아볼 수 있어야 한다.
+    const name = it.room || roomNameOf(it.sourceId) || "(알 수 없는 방)";
+    const row = document.createElement("div");
+    row.className = "resv-status-row";
+    row.innerHTML =
+      `<b>${it.start} ~ ${it.end}</b><em>${name}</em>` +
+      `<i>${[it.who, it.why].filter(Boolean).join(" · ")}</i>`;
+    statusEls.list.appendChild(row);
+  }
+}
+
+/** main.js 가 방 목록을 넘겨준다. 여기서 rooms.json 을 다시 읽지 않는다. */
+let roomIndex = new Map();
+const roomNameOf = (sourceId) => roomIndex.get(sourceId);
+
+export function setRooms(rooms) {
+  for (const r of rooms) if (r.sourceId) roomIndex.set(r.sourceId, r.name);
+}
+
+export function openStatus() {
+  if (!statusDlg) buildStatus();
+  if (!statusEls.date.value) {
+    const t = new Date();
+    statusEls.date.value = ymd(t);
+  }
+  loadStatus();
+  statusDlg.showModal();
+}
+
 // ---------------------------------------------------------------- 밖에서 쓰는 것
 /** 이 방을 예약할 수 있나. main.js 가 버튼을 붙일지 정할 때 쓴다. */
 export const isReservable = (room) => room.reservable === true;
@@ -378,6 +489,10 @@ export function openReservation(room) {
   els.where.textContent = `${room.building} · ${room.floor}F`;
   els.room.textContent = room.name;
   els.offline.hidden = connected;
+  // 방마다 붙는 이용 규칙 (plan.config.json 의 reservable 안 note).
+  // 신청 전에 보여줘야 의미가 있으므로 맨 위에 둔다.
+  els.note.textContent = room.note || "";
+  els.note.hidden = !room.note;
 
   const today = new Date();
   const max = new Date(today);

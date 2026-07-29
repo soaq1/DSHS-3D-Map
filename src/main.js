@@ -12,7 +12,12 @@ import {
 } from "./materials.js";
 import { createBackdrop, createGround, createReflection } from "./environment.js";
 import { createComposer, BLOOM } from "./postfx.js";
-import { isReservable, openReservation } from "./reservation.js";
+import {
+  isReservable,
+  openReservation,
+  openStatus,
+  setRooms,
+} from "./reservation.js";
 
 // index.html 의 가드에게 "모듈이 실제로 실행됐다" 고 알린다.
 window.__appBooted = true;
@@ -235,7 +240,15 @@ for (const room of roomsData.rooms) {
     height, // 이름표를 매스 한가운데 놓는 데 쓴다 (방마다 다르다)
   };
 
-  (floorGroups.get(room.floor) ?? roomGroup).add(mesh);
+  // 계단실·엘리베이터는 층 그룹에 넣지 않는다. 층 그룹에 넣으면 층을 하나만 켤 때
+  // 그 층 칸만 남아 기둥이 토막 난다. 층이 잘려도 1층부터 꼭대기까지 관통해 있어야
+  // 건물의 뼈대가 읽힌다. 대신 층 높이를 메시가 직접 진다.
+  if (room.shaft) {
+    mesh.position.y = floorY(room.floor);
+    roomGroup.add(mesh);
+  } else {
+    (floorGroups.get(room.floor) ?? roomGroup).add(mesh);
+  }
   roomMeshes.push(mesh);
 }
 
@@ -423,7 +436,12 @@ function updateLabels() {
     // mesh.visible 에 층·동·종류 필터가 이미 다 반영돼 있다.
     // 패널이 그 방 옆에 붙어 있으면 이름표는 뺀다 — 바로 옆 카드에 같은 이름이
     // 큰 글씨로 있어서 겹쳐 읽히기만 한다.
-    let show = l.mesh.visible && !(panelPinned && selectedSet.has(l.mesh));
+    // 기둥은 모든 층에서 보이므로 이름표를 그대로 두면 계단실1 이 네 겹으로 쌓인다.
+    // 지금 보고 있는 층의 것만 남긴다.
+    let show =
+      l.mesh.visible &&
+      isShown(l.mesh.userData.room) &&
+      !(panelPinned && selectedSet.has(l.mesh));
 
     if (show) {
       labelPos.copy(l.anchor);
@@ -474,10 +492,19 @@ const activeBuildings = new Set(
 );
 const activeTypes = new Set(Object.keys(TYPE_STYLE));
 
+/** 층 필터까지 포함한 판정. 카메라를 맞출 때와 이름표에 쓴다. */
 const isShown = (room) =>
   (activeFloor === null || room.floor === activeFloor) &&
   activeBuildings.has(room.building) &&
   activeTypes.has(room.type);
+
+/** 화면에 그릴지. 계단실 기둥만 층 필터를 건너뛴다 — 층을 하나만 켜도 기둥은
+ *  1층부터 꼭대기까지 그대로 서 있어야 한다. 카메라 맞추기(isShown)에는 이걸
+ *  쓰지 않는다. 쓰면 4층만 봐도 기둥 전체가 화면에 들어오려고 뒤로 물러난다. */
+const isVisible = (room) =>
+  room.shaft
+    ? activeBuildings.has(room.building) && activeTypes.has(room.type)
+    : isShown(room);
 
 /** 레이캐스트 대상. 복도를 빼는 이유는 교실을 가리기 때문이고,
  *  숨긴 방을 빼는 이유는 안 보이는 게 클릭을 가로채면 안 되기 때문이다. */
@@ -488,7 +515,7 @@ function applyFilters() {
     g.visible = activeFloor === null || f === activeFloor;
   }
   for (const m of roomMeshes) {
-    m.visible = isShown(m.userData.room);
+    m.visible = isVisible(m.userData.room);
   }
   // 반사는 맨 아래층이 보일 때만 의미가 있다
   reflection.visible = activeFloor === null || activeFloor === BASE_FLOOR;
@@ -622,6 +649,10 @@ const panelBuilding = document.getElementById("panel-building");
 const panelType = document.getElementById("panel-type");
 const panelParts = document.getElementById("panel-parts");
 const panelBook = document.getElementById("panel-book");
+
+// 예약 화면이 sourceId 로 방 이름을 찾을 수 있게 목록을 넘겨준다
+setRooms(roomsData.rooms);
+document.getElementById("open-status").addEventListener("click", openStatus);
 
 // 예약창은 지금 패널에 떠 있는 방을 그대로 받는다
 panelBook.addEventListener("click", () => {

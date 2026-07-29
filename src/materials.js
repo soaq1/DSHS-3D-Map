@@ -38,7 +38,10 @@ export const TYPE_STYLE = {
   // 홀은 층에서 가장 넓다(2층 홀 767㎡). 교실처럼 세워두면 뒤를 가려서 예전에는
   // 농도를 0.06까지 낮춰 억지로 비치게 했다. 지금은 30cm 로 눕혀(typeHeights)
   // 가릴 일이 없으므로 오히려 진하게 깔아 '바닥판' 으로 또렷하게 읽히게 한다.
-  hall: { opacity: 0.2, lineOpacity: 0.55, lineWidth: 1.4, lighten: 0 },
+  // 눕히고 나서 농도를 0.2 까지 올렸더니 넓은 면(2층 홀 767㎡)이 통째로 블룸을
+  // 먹어 눈이 아팠다. 농도를 내리고 색도 한 단 낮춘다. 면이 넓을수록 같은 밝기라도
+  // 눈에 들어오는 빛의 총량이 커진다는 걸 놓쳤다.
+  hall: { opacity: 0.12, lineOpacity: 0.5, lineWidth: 1.4, lighten: -0.1 },
 };
 
 export function roomColor(room, palette, typeColors = {}) {

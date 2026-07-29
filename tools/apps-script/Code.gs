@@ -156,7 +156,14 @@ function day_(date) {
     if (String(r["상태"]).trim() !== STATUS.OK) return;
     var id = String(r["sourceId"]);
     if (!byRoom[id]) byRoom[id] = [];
-    byRoom[id].push({ start: hhmm_(r["시작"]), end: hhmm_(r["끝"]) });
+    byRoom[id].push({
+      start: hhmm_(r["시작"]),
+      end: hhmm_(r["끝"]),
+      // 현황 화면이 누가 왜 쓰는지까지 보여줘야 해서 같이 실어 보낸다
+      who: String(r["신청자"] || ""),
+      why: String(r["사유"] || ""),
+      room: String(r["방이름"] || ""),
+    });
   });
 
   var out = { ok: true, rooms: byRoom };
@@ -290,6 +297,62 @@ function notify_(b, id) {
   } catch (err) {
     // 메일이 실패해도 접수는 살린다. 신청이 사라지는 게 더 나쁘다.
     console.error("알림 메일 실패: " + err);
+  }
+}
+
+/**
+ * 상태를 바꾸면 신청자에게 알려준다. 승인만이 아니라 **되돌리는 경우가 더 중요하다** —
+ * "승인됐다" 고 알고 있는 사람에게 취소·반려를 안 알리면 그 시간에 그냥 온다.
+ *
+ * 연락처가 이메일일 때만 보낸다. 전화번호로 문자를 보내려면 외부 유료 API 와
+ * 발신번호 사전등록(법적 의무)이 필요해서 학교 차원의 승인 없이는 못 붙인다.
+ *
+ * ★ 설치: 편집기 왼쪽 '트리거' → 트리거 추가 → 함수 onStatusEdit,
+ *   이벤트 소스 '스프레드시트에서', 이벤트 유형 '수정 시'.
+ *   (onEdit 라는 이름의 단순 트리거는 메일을 못 보낸다. 반드시 설치형으로 건다)
+ */
+function onStatusEdit(e) {
+  if (!e || !e.range) return;
+  var sh = e.range.getSheet();
+  if (sh.getName() !== SHEET_NAME) return;
+
+  var col = HEADERS.indexOf("상태") + 1;
+  if (e.range.getColumn() !== col || e.range.getRow() < 2) return;
+
+  var status = String(e.range.getValue()).trim();
+  if (status === STATUS.WAIT) return; // 대기로 되돌린 건 알릴 것이 없다
+
+  var row = sh.getRange(e.range.getRow(), 1, 1, HEADERS.length).getValues()[0];
+  var r = {};
+  HEADERS.forEach(function (h, i) { r[h] = row[i]; });
+
+  // 그 방·그 날 조회를 다시 하도록 캐시를 버린다. 안 그러면 최대 60초 동안
+  // 화면에는 예전 상태가 남는다.
+  CacheService.getScriptCache().removeAll([
+    "slots:" + r["sourceId"] + ":" + ymd_(r["날짜"]), "day:" + ymd_(r["날짜"]),
+  ]);
+
+  var to = String(r["연락"] || "").trim();
+  if (to.indexOf("@") < 0) return; // 이메일이 아니면 보낼 방법이 없다
+
+  var head = { 승인: "예약이 확정됐습니다", 반려: "예약이 반려됐습니다",
+               취소: "예약이 취소됐습니다" }[status] || "예약 상태가 바뀌었습니다";
+  try {
+    MailApp.sendEmail({
+      to: to,
+      subject: "[방 예약] " + head + " — " + r["방이름"] + " " + ymd_(r["날짜"]),
+      body: [
+        head + ".",
+        "",
+        "방      : " + r["방이름"],
+        "날짜    : " + ymd_(r["날짜"]),
+        "시간    : " + hhmm_(r["시작"]) + " ~ " + hhmm_(r["끝"]),
+        "예약번호: " + r["예약번호"],
+        r["처리메모"] ? "\n메모: " + r["처리메모"] : "",
+      ].join("\n"),
+    });
+  } catch (err) {
+    console.error("상태 변경 알림 실패: " + err);
   }
 }
 
