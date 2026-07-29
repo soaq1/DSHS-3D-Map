@@ -190,12 +190,23 @@ function doPost(e) {
 }
 
 function request_(b) {
-  var need = ["sourceId", "date", "start", "end", "who"];
-  for (var i = 0; i < need.length; i++) {
-    if (!b[need[i]]) return { ok: false, error: need[i] + " 이(가) 없습니다" };
+  if (!b.sourceId || !b.date || !b.who) {
+    return { ok: false, error: "sourceId · date · who 가 필요합니다" };
   }
-  if (toMin_(b.start) >= toMin_(b.end)) {
-    return { ok: false, error: "끝 시각이 시작보다 늦어야 합니다" };
+
+  // 띄엄띄엄 고른 교시는 덩어리마다 예약이 따로 만들어진다. 한 줄에 여러 구간을
+  // 담으면 겹침 판정이 구간마다 갈라져 복잡해지기 때문이다.
+  // 예전 클라이언트가 보내던 start/end 한 쌍도 그대로 받는다.
+  var ranges = b.ranges;
+  if (!ranges || !ranges.length) {
+    if (!b.start || !b.end) return { ok: false, error: "시간이 없습니다" };
+    ranges = [{ start: b.start, end: b.end, periods: b.periods || "" }];
+  }
+
+  for (var i = 0; i < ranges.length; i++) {
+    if (toMin_(ranges[i].start) >= toMin_(ranges[i].end)) {
+      return { ok: false, error: "끝 시각이 시작보다 늦어야 합니다" };
+    }
   }
 
   // 신청이 몰려도 줄 세워 처리한다. 선생님이 시트를 열어둔 동안에도 들어온다.
@@ -204,30 +215,39 @@ function request_(b) {
   try {
     // 이미 승인된 것과 겹치면 접수하지 않는다. 대기 중인 것과는 겹쳐도 받는다 —
     // 막으면 아무나 대기를 걸어 방을 잠글 수 있다.
-    var clash = rows_().filter(function (r) {
+    var sameDay = rows_().filter(function (r) {
       return String(r["sourceId"]) === b.sourceId &&
         ymd_(r["날짜"]) === b.date &&
-        String(r["상태"]).trim() === STATUS.OK &&
-        overlap_(b.start, b.end, hhmm_(r["시작"]), hhmm_(r["끝"]));
+        String(r["상태"]).trim() === STATUS.OK;
     });
-    if (clash.length) {
-      return { ok: false, error: "그 시간은 이미 예약돼 있습니다" };
+    for (var j = 0; j < ranges.length; j++) {
+      var rg = ranges[j];
+      var hit = sameDay.some(function (r) {
+        return overlap_(rg.start, rg.end, hhmm_(r["시작"]), hhmm_(r["끝"]));
+      });
+      if (hit) {
+        return { ok: false, error: rg.start + "~" + rg.end + " 은 이미 예약돼 있습니다" };
+      }
     }
 
+    // 한 번의 신청이므로 예약번호는 하나로 묶는다. 취소도 한꺼번에 된다.
     var sh = sheet_();
     var id = newId_(sh);
-    sh.appendRow([
-      new Date(), id, b.sourceId, b.roomName || "", b.floor || "", b.building || "",
-      b.date, b.start, b.end, b.periods || "",
-      b.who, b.dept || "", b.contact || "", b.why || "", STATUS.WAIT, "",
-    ]);
+    var rows = ranges.map(function (rg) {
+      return [
+        new Date(), id, b.sourceId, b.roomName || "", b.floor || "", b.building || "",
+        b.date, rg.start, rg.end, rg.periods || "",
+        b.who, b.dept || "", b.contact || "", b.why || "", STATUS.WAIT, "",
+      ];
+    });
+    sh.getRange(sh.getLastRow() + 1, 1, rows.length, HEADERS.length).setValues(rows);
 
     CacheService.getScriptCache().removeAll([
       "slots:" + b.sourceId + ":" + b.date, "day:" + b.date,
     ]);
 
-    notify_(b, id);
-    return { ok: true, id: id };
+    notify_(b, id, ranges);
+    return { ok: true, id: id, count: ranges.length };
   } finally {
     lock.releaseLock();
   }
@@ -249,23 +269,25 @@ function cancel_(b) {
   try {
     var sh = sheet_();
     var all = rows_();
+    var n = 0;
+    // 한 번의 신청이 여러 줄일 수 있다(띄엄띄엄 고른 경우). 같은 예약번호를
+    // 전부 취소한다.
     for (var i = 0; i < all.length; i++) {
       var r = all[i];
       if (String(r["예약번호"]) !== b.id) continue;
       if (String(r["신청자"]).trim() !== String(b.who).trim()) {
         return { ok: false, error: "신청자 이름이 다릅니다" };
       }
-      if (String(r["상태"]).trim() !== STATUS.WAIT) {
-        return { ok: false, error: "이미 처리된 예약은 선생님께 문의해 주세요" };
-      }
-      // 행은 절대 지우지 않는다. 지우면 행 번호가 밀려 사고가 난다.
+      if (String(r["상태"]).trim() !== STATUS.WAIT) continue;
+      // 행은 절대 지우지 않는다. 기록이 사라지고 예약번호가 겹친다.
       sh.getRange(i + 2, HEADERS.indexOf("상태") + 1).setValue(STATUS.CANCEL);
       CacheService.getScriptCache().removeAll([
         "slots:" + r["sourceId"] + ":" + ymd_(r["날짜"]), "day:" + ymd_(r["날짜"]),
       ]);
-      return { ok: true };
+      n++;
     }
-    return { ok: false, error: "그런 예약번호가 없습니다" };
+    if (!n) return { ok: false, error: "취소할 수 있는 예약이 없습니다" };
+    return { ok: true, count: n };
   } finally {
     lock.releaseLock();
   }
@@ -274,7 +296,7 @@ function cancel_(b) {
 // ────────────────────────────────────────────────────────────── 알림
 /** 이게 없으면 시스템이 안 돈다. 승인이 있어야 확정인데 선생님은 시트를 늘
  *  들여다보지 않는다. */
-function notify_(b, id) {
+function notify_(b, id, ranges) {
   if (!NOTIFY_EMAIL) return;
   try {
     MailApp.sendEmail({
@@ -285,7 +307,8 @@ function notify_(b, id) {
         "",
         "방      : " + (b.roomName || "") + " (" + (b.building || "") + " " + (b.floor || "") + "층)",
         "날짜    : " + b.date,
-        "시간    : " + b.start + " ~ " + b.end + (b.periods ? "  (" + b.periods + "교시)" : ""),
+        "시간    : " + (ranges || [{ start: b.start, end: b.end }])
+          .map(function (r) { return r.start + " ~ " + r.end; }).join(", "),
         "신청자  : " + b.who + " / " + (b.dept || "-") + " / " + (b.contact || "-"),
         "사유    : " + (b.why || "-"),
         "예약번호: " + id,

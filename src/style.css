@@ -760,14 +760,17 @@ body {
   border-color: rgba(34, 211, 238, 0.4);
 }
 
+/* 고른 교시. 배경을 통째로 칠하면 글자가 배경에 묻혀 몇 교시인지 안 보인다
+   (특히 폰에서). 테두리와 글자색으로만 표시하고 배경은 아주 옅게만 깐다. */
 .resv-period[aria-pressed="true"] {
-  color: #061018;
-  background: var(--cyan);
+  color: var(--cyan);
+  background: rgba(34, 211, 238, 0.12);
   border-color: var(--cyan);
+  box-shadow: 0 0 0 1px var(--cyan) inset;
 }
 
-.resv-period[aria-pressed="true"] u {
-  color: rgba(6, 16, 24, 0.6);
+.resv-period[aria-pressed="true"] i {
+  opacity: 0.9;
 }
 
 /* 이미 예약된 교시. 지우지 않고 남겨서 '왜 못 고르는지' 가 보이게 한다 */

@@ -17,16 +17,12 @@ const toHHMM = (min) => pad(Math.floor(min / 60)) + ":" + pad(min % 60);
 const ymd = (d) =>
   d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
 
-/** 고른 교시들을 하나의 시각 구간으로 묶는다.
- *  교시 사이에 10분씩 비지만 쪼개지 않는다 — 3·4교시를 잡으면 10:20~12:10 한 칸이다.
- *  두 구간으로 저장하면 겹침 판정만 복잡해지고 얻는 게 없다. */
-function periodSpan(keys) {
-  const picked = PERIODS.filter((p) => keys.includes(p.key));
-  if (!picked.length) return null;
-  const start = Math.min(...picked.map((p) => toMin(p.start)));
-  const end = Math.max(...picked.map((p) => toMin(p.end)));
-  return { start: toHHMM(start), end: toHHMM(end) };
-}
+/** 시간별 예약을 받는 단위(분). 시간표가 10분 간격이라 여기에 맞춘다. */
+const TIME_STEP_MIN = 10;
+
+/** 이메일인지. 승인·반려를 자동으로 알리려면 이메일이어야 한다.
+ *  전화번호는 문자를 보낼 방법이 없다(발신번호 사전등록이 필요하다). */
+const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
 
 /** 겹침 판정. 저장된 것도 신청하는 것도 시각이라 규칙은 이것 하나뿐이다. */
 const overlaps = (aStart, aEnd, bStart, bEnd) =>
@@ -138,8 +134,9 @@ function build() {
         <input id="resv-dept" type="text" maxlength="30" placeholder="학급 · 동아리 · 교과" />
       </label>
       <label class="resv-row">
-        <span>연락</span>
-        <input id="resv-contact" type="text" maxlength="40" placeholder="확인 받을 수단" />
+        <span>이메일</span>
+        <input id="resv-contact" type="email" required maxlength="60"
+               placeholder="승인 결과를 받을 주소" />
       </label>
       <label class="resv-row">
         <span>사유</span>
@@ -232,30 +229,15 @@ function buildPeriodChips() {
 const passable = (p) =>
   !taken.some((t) => overlaps(p.start, p.end, t.start, t.end));
 
-/** 고른 교시는 반드시 이어져 있어야 한다.
+/** 교시는 하나씩 켜고 끈다. 띄엄띄엄 골라도 된다.
  *
- *  예전에는 아무 교시나 켰다 껐다 할 수 있었는데, 그러면 3교시와 5교시를 고른 순간
- *  구간이 10:20~14:10 이 되어 고르지도 않은 4교시가 딸려 들어갔다. 4교시가 이미
- *  예약돼 있으면 "고르지도 않은 시간이 예약됐다" 는 말이 화면에 뜬다. 무슨 일이
- *  벌어졌는지 알 길이 없다.
- *
- *  그래서 사이를 실제로 채워서 보여준다. 1교시를 켠 채 3교시를 누르면 2교시도 같이
- *  켜진다 — 어차피 그 시간을 잡는 것이니 눈에 보이는 게 맞다. 사이에 예약된 교시가
- *  있어 채울 수 없으면 누른 교시 하나로 새로 시작한다. */
+ *  한때 "반드시 이어져야 한다" 로 막았던 적이 있다. 한 신청을 한 구간으로만 저장했기
+ *  때문인데, 그러면 3교시와 5교시를 고른 순간 사이의 4교시까지 딸려 들어갔다.
+ *  지금은 **떨어진 덩어리마다 예약을 따로 만든다**(currentRanges 참고). 1교시와
+ *  5교시만 쓰고 싶은 사람을 막을 이유가 없다. */
 function pickPeriod(key) {
-  const i = PERIODS.findIndex((p) => p.key === key);
-  if (i < 0) return;
-
-  if (picked.has(key)) {
-    // 가운데를 끄면 남은 것이 끊긴다. 뒤쪽을 같이 걷어 이어진 상태를 지킨다.
-    for (const p of PERIODS.slice(i)) picked.delete(p.key);
-  } else {
-    const idx = [...picked].map((k) => PERIODS.findIndex((p) => p.key === k));
-    const run = PERIODS.slice(Math.min(i, ...idx), Math.max(i, ...idx) + 1);
-    picked.clear();
-    if (run.every(passable)) for (const p of run) picked.add(p.key);
-    else picked.add(key);
-  }
+  if (picked.has(key)) picked.delete(key);
+  else picked.add(key);
 
   for (const b of els.periods.querySelectorAll("button")) {
     b.setAttribute("aria-pressed", String(picked.has(b.dataset.key)));
@@ -263,34 +245,82 @@ function pickPeriod(key) {
   refreshSpan();
 }
 
-// ---------------------------------------------------------------- 상태 갱신
-/** 지금 고른 것이 어떤 시각 구간인지 */
-function currentSpan() {
-  if (mode === "period") return periodSpan([...picked]);
-  const s = els.start.value;
-  const e = els.end.value;
-  if (!s || !e) return null;
-  if (toMin(s) >= toMin(e)) return null;
-  return { start: s, end: e };
+/** 고른 교시를 '이어진 덩어리' 로 잘라 시각 구간 목록을 만든다.
+ *
+ *  이어졌다고 보는 기준: 사이에 **고를 수 있는데 안 고른** 교시가 없을 것.
+ *  종례처럼 단독으로 못 고르는 시간은 사이에 있어도 이어진 것으로 본다 —
+ *  6·7교시를 잡으면 그 사이 20분도 당연히 쓰는 것이다. */
+function currentRanges() {
+  if (mode === "time") {
+    const s = els.start.value;
+    const e = els.end.value;
+    if (!s || !e || toMin(s) >= toMin(e)) return [];
+    return [{ start: s, end: e, periods: "" }];
+  }
+
+  const idx = PERIODS.map((p, i) => (picked.has(p.key) ? i : -1)).filter(
+    (i) => i >= 0
+  );
+  if (!idx.length) return [];
+
+  const runs = [[idx[0]]];
+  for (let k = 1; k < idx.length; k++) {
+    const between = PERIODS.slice(idx[k - 1] + 1, idx[k]);
+    if (between.some((p) => p.bookable !== false)) runs.push([idx[k]]);
+    else runs[runs.length - 1].push(idx[k]);
+  }
+
+  return runs.map((run) => ({
+    start: PERIODS[run[0]].start,
+    end: PERIODS[run[run.length - 1]].end,
+    periods: run.map((i) => PERIODS[i].key).join(","),
+  }));
 }
 
+// ---------------------------------------------------------------- 상태 갱신
+/** 시간별로 적은 값이 10분 단위인지. 아니면 왜 안 되는지 알려줘야 한다. */
+const onTenMin = (hhmm) => toMin(hhmm) % TIME_STEP_MIN === 0;
+
 function refreshSpan() {
-  const span = currentSpan();
-  if (!span) {
-    els.span.textContent =
-      mode === "period" ? "교시를 고르세요" : "끝 시각이 시작보다 늦어야 합니다";
+  const ranges = currentRanges();
+
+  if (!ranges.length) {
+    if (mode === "period") {
+      els.span.textContent = "교시를 고르세요";
+    } else if (els.start.value && els.end.value) {
+      els.span.textContent = "끝 시각이 시작보다 늦어야 합니다";
+    } else {
+      els.span.textContent = "시간을 정하세요";
+    }
+    els.span.classList.remove("ok");
+    els.submit.disabled = true;
+    return;
+  }
+
+  // 시간별은 10분 단위로만 받는다. 5분·7분 단위가 섞이면 시간표와 어긋나고
+  // 시트에서 눈으로 훑기도 어려워진다.
+  if (mode === "time" && !ranges.every((r) => onTenMin(r.start) && onTenMin(r.end))) {
+    els.span.textContent = "시간은 10분 단위로 정해주세요 (예: 16:30, 16:40)";
+    els.span.classList.remove("ok");
+    els.submit.disabled = true;
+    return;
+  }
+
+  const clash = ranges.find((r) =>
+    taken.some((t) => overlaps(r.start, r.end, t.start, t.end))
+  );
+  const text = ranges.map((r) => `${r.start} ~ ${r.end}`).join(", ");
+
+  if (clash) {
+    els.span.textContent = text + " — 겹치는 시간이 있습니다";
     els.span.classList.remove("ok");
   } else {
-    const hit = taken.find((t) => overlaps(span.start, span.end, t.start, t.end));
-    if (hit) {
-      els.span.textContent = `${span.start} ~ ${span.end} — 이미 예약됨 (${hit.who || "다른 사람"})`;
-      els.span.classList.remove("ok");
-    } else {
-      els.span.textContent = `${span.start} ~ ${span.end}`;
-      els.span.classList.add("ok");
-    }
+    // 덩어리가 여럿이면 예약도 그만큼 따로 만들어진다는 걸 알려준다
+    els.span.textContent =
+      text + (ranges.length > 1 ? `  (예약 ${ranges.length}건)` : "");
+    els.span.classList.add("ok");
   }
-  els.submit.disabled = !connected || !span;
+  els.submit.disabled = !connected || !!clash;
 }
 
 /** 그 날 이미 승인된 예약을 받아 교시 칩에 표시한다 */
@@ -343,11 +373,18 @@ function say(text, bad) {
 
 // ---------------------------------------------------------------- 신청
 async function submit() {
-  const span = currentSpan();
-  if (!span) return;
+  const ranges = currentRanges();
+  if (!ranges.length) return;
+
   if (!els.who.value.trim()) {
     say("신청자 이름을 적어주세요", true);
     els.who.focus();
+    return;
+  }
+  // 이메일만 받는다. 승인·반려를 자동으로 알릴 수 있는 유일한 수단이다.
+  if (!isEmail(els.contact.value)) {
+    say("이메일 주소를 정확히 적어주세요. 승인 결과를 이리로 보냅니다", true);
+    els.contact.focus();
     return;
   }
 
@@ -364,16 +401,20 @@ async function submit() {
       floor: current.floor,
       building: current.building,
       date: els.date.value,
-      start: span.start,
-      end: span.end,
-      periods: mode === "period" ? [...picked].join(",") : "",
+      // 띄엄띄엄 고르면 덩어리마다 예약이 따로 만들어진다. 한 줄에 여러 구간을
+      // 담으면 겹침 판정이 구간마다 갈라져 복잡해진다.
+      ranges,
       who: els.who.value.trim(),
       dept: els.dept.value.trim(),
       contact: els.contact.value.trim(),
       why: els.why.value.trim(),
     });
-    say(`신청됐습니다. 예약번호 ${res.id} — 승인되면 알려드립니다`);
-    els.submit.disabled = true;
+    const n = res.count ?? 1;
+    say(
+      `신청됐습니다. 예약번호 ${res.id}` +
+        (n > 1 ? ` (${n}건)` : "") +
+        " — 승인되면 이메일로 알려드립니다"
+    );
   } catch (err) {
     say("신청하지 못했습니다 — " + err.message, true);
     els.submit.disabled = false;
